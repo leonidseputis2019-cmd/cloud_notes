@@ -11,15 +11,36 @@ const CELLW = 273, CELLH = 254;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
-/* ===== хранилище ===== */
+/* ===== сессия и тариф (локально — это удобство, не правда) ===== */
 const DB = {
   get session(){ return localStorage.cn_session || ''; },
   set session(v){ localStorage.cn_session = v || ''; },
-  items(e){ return JSON.parse(localStorage['cn_items_' + e] || '[]'); },
-  setItems(e, v){ try{ localStorage['cn_items_' + e] = JSON.stringify(v); return true; }catch(err){ info('Хранилище переполнено.'); return false; } },
   plan(e){ return localStorage['cn_plan_' + e] || 'basic'; },
   setPlan(e, v){ localStorage['cn_plan_' + e] = v; }
 };
+
+/* ===== папки: правда в Supabase, здесь — кэш ===== */
+let MY_UID = '';
+const Store = {
+  cache: [],
+  async load(){
+    const { data, error } = await SB.from('folders').select('*');
+    if(error){ info('Не удалось загрузить папки: ' + error.message); this.cache = []; return; }
+    this.cache = (data || []).map(r => ({ id: r.id, name: r.name, text: r.text || '', pin: !!r.pin, files: r.files || [] }));
+  },
+  find(id){ return this.cache.find(x => x.id === id); },
+  async save(it){
+    const { error } = await SB.from('folders').upsert({ id: it.id, owner: MY_UID, name: it.name, text: it.text || '', pin: !!it.pin, files: it.files || [] });
+    if(error) info('Не удалось сохранить в облако: ' + error.message);
+  },
+  async remove(id){
+    const { error } = await SB.from('folders').delete().eq('id', id);
+    if(error) info('Не удалось удалить из облака: ' + error.message);
+  }
+};
+let saveT = 0;
+function saveSoon(it){ clearTimeout(saveT); saveT = setTimeout(() => Store.save(it), 500); }
+
 const OPEN = {
   key(){ return 'cn_open_' + DB.session; },
   get(){ return JSON.parse(sessionStorage.getItem(this.key()) || '[]'); },
@@ -40,8 +61,8 @@ const POS = {
 function clearOpen(em){ sessionStorage.removeItem('cn_open_' + em); sessionStorage.removeItem('cn_active_' + em); }
 function currentQ(){ return (document.querySelector('.search input')?.value || '').toLowerCase().trim(); }
 function emptyHTML(img, txt){ return `<div class="empty"><img src="icons/${img}" alt=""><p>${txt}</p></div>`; }
-function usedBytes(em){
-  return DB.items(em).reduce((s, it) => {
+function usedBytes(){
+  return Store.cache.reduce((s, it) => {
     let b = (it.text || '').length;
     (it.files || []).forEach(f => { b += f.size || 0; });
     return s + b;
@@ -85,14 +106,14 @@ function busy(btn, on, txt){
 }
 function guardLimits(f){
   if(f.size > MAXFILE){ info('Один файл не может быть больше 25 МБ.'); return false; }
-  const em = DB.session, L = LIMITS[DB.plan(em)];
-  if(DB.items(em).length >= L.folders){ info(`На тарифе «${DB.plan(em) === 'basic' ? 'Базовый' : 'PRO'}» не более ${L.folders} папок.`); return false; }
-  const need = usedBytes(em) + f.size;
+  const L = LIMITS[DB.plan(DB.session)];
+  if(Store.cache.length >= L.folders){ info(`На тарифе «${DB.plan(DB.session) === 'basic' ? 'Базовый' : 'PRO'}» не более ${L.folders} папок.`); return false; }
+  const need = usedBytes() + f.size;
   if(isFinite(L.bytes) && need > L.bytes){ info('Недостаточно места в хранилище.'); return false; }
   return true;
 }
 
-/* ===== облако ===== */
+/* ===== облако файлов ===== */
 const URL_CACHE = {};
 async function uid(){
   const { data } = await SB.auth.getSession();
@@ -251,7 +272,7 @@ function renderTabs(items){
 }
 function applyFilter(q){
   const d = $('#desk'); if(!d) return;
-  const items = DB.items(DB.session);
+  const items = Store.cache;
   const open = OPEN.get();
   let found = q ? items.filter(it => it.name.toLowerCase().includes(q))
                 : items.filter(it => open.includes(it.id));
@@ -300,7 +321,7 @@ function ensureSuggest(){
     e.preventDefault();
     const id = +li.dataset.id;
     const inp = document.querySelector('.search input');
-    const it = DB.items(DB.session).find(x => x.id === id);
+    const it = Store.find(id);
     if(inp && it) inp.value = it.name;
     ACTIVE.set(id); applyFilter(currentQ()); s.hidden = true; focusCard(id);
   });
@@ -308,7 +329,7 @@ function ensureSuggest(){
 }
 function showSuggest(q){
   const s = ensureSuggest(); if(!s) return;
-  const found = q ? DB.items(DB.session).filter(it => it.name.toLowerCase().includes(q)).slice(0, 8) : [];
+  const found = q ? Store.cache.filter(it => it.name.toLowerCase().includes(q)).slice(0, 8) : [];
   if(!found.length){ s.hidden = true; s.innerHTML = ''; return; }
   s.innerHTML = found.map(it => `<li data-id="${it.id}">${esc(it.name)}</li>`).join('');
   s.hidden = false;
@@ -326,7 +347,7 @@ function initSearch(){
   document.addEventListener('click', e => { const s = $('#suggest'); if(s && !e.target.closest('.search')) s.hidden = true; });
 }
 
-/* ===== модалка ===== */
+/* ===== модалка создания папки ===== */
 function openModal(o = {}){
   const m = $('#modal');
   if(!m){ console.error('нет #modal'); return; }
@@ -335,15 +356,15 @@ function openModal(o = {}){
   m.hidden = false; $('#new-name').focus();
 }
 const mok = $('#new-ok');
-if(mok) mok.addEventListener('click', () => {
+if(mok) mok.addEventListener('click', async () => {
   const inp = $('#new-name'); const name = inp.value.trim();
   if(!name){ inp.classList.add('err'); return; }
-  const items = DB.items(DB.session);
   const id = Date.now();
-  items.push({ id, name, type: 'folder', text: '', pin: false, files: [] });
-  if(!DB.setItems(DB.session, items)) return;
+  const it = { id, name, text: '', pin: false, files: [] };
+  Store.cache.push(it);
   OPEN.add(id); ACTIVE.set(id);
   $('#modal').hidden = true;
+  await Store.save(it);
   location.href = 'note.html?id=' + id;
 });
 const modal = $('#modal');
@@ -358,13 +379,14 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
   document.body.classList.toggle('drag-mode', mode === 'cursor');
 }));
 function askDelete(id){
-  const it = DB.items(DB.session).find(x => x.id === id); if(!it) return;
+  const it = Store.find(id); if(!it) return;
   askConfirm(`Удалить папку «${it.name}»?`, async () => {
-    const cb = $('#confirm-ok'); busy(cb, true, ' удаляем...');
+    const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
     try{
       const paths = (it.files || []).map(f => f.path).filter(Boolean);
       if(paths.length) await removePaths(paths);
-      DB.setItems(DB.session, DB.items(DB.session).filter(x => x.id !== id));
+      await Store.remove(id);
+      Store.cache = Store.cache.filter(x => x.id !== id);
       OPEN.remove(id); if(ACTIVE.get() === id) ACTIVE.set(0);
       const pos = POS.get(); delete pos[id]; POS.set(pos);
       applyFilter(currentQ());
@@ -389,10 +411,9 @@ document.addEventListener('click', e => {
   }
   const card = e.target.closest('.card');
   if(card && card.dataset.id && mode === 'pin'){
-    const items = DB.items(DB.session);
-    const it = items.find(x => x.id === +card.dataset.id);
+    const it = Store.find(+card.dataset.id);
     if(!it) return;
-    it.pin = !it.pin; DB.setItems(DB.session, items); applyFilter(currentQ());
+    it.pin = !it.pin; Store.save(it); applyFilter(currentQ());
   }
 });
 document.addEventListener('dblclick', e => {
@@ -405,7 +426,7 @@ document.addEventListener('dblclick', e => {
 async function notePage(){
   const sh = $('#sheet'); if(!sh) return;
   const id = +new URLSearchParams(location.search).get('id');
-  const it = DB.items(DB.session).find(x => x.id === id);
+  const it = Store.find(id);
   if(!it) return location.replace('desk.html');
 
   const ta = `<textarea class="note-text" id="note-text" placeholder="заметка...">${esc(it.text || '')}</textarea><p class="save-hint">сохраняется автоматически</p>`;
@@ -419,7 +440,7 @@ async function notePage(){
       const url = await fileURL(f.path);
       const isImg = (f.mime || '').startsWith('image/');
       const thumb = isImg ? `<img class="file-thumb" src="${url}" alt="">` : `<img class="file-thumb" src="icons/${ICON.file}" alt="">`;
-      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать"></button><button class="file-open" data-open="${f.path}" title="открыть"></button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
+      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать">⬇</button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
     }
     fileList = `<div class="file-list">${rows.join('')}</div><button class="btn add-more" id="add-file-btn">+ добавить файл</button>`;
   }
@@ -428,9 +449,8 @@ async function notePage(){
 
   const textArea = $('#note-text');
   if(textArea) textArea.addEventListener('input', () => {
-    const items = DB.items(DB.session);
-    const x = items.find(y => y.id === id);
-    if(x){ x.text = textArea.value; DB.setItems(DB.session, items); }
+    const x = Store.find(id);
+    if(x){ x.text = textArea.value; saveSoon(x); }
   });
 
   const addBtn = $('#add-file-btn');
@@ -444,9 +464,8 @@ async function notePage(){
       showProgress(f.name);
       try{
         const path = await uploadFile(f, id);
-        const items = DB.items(DB.session);
-        const x = items.find(y => y.id === id);
-        if(x){ x.files = x.files || []; x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' }); DB.setItems(DB.session, items); }
+        const x = Store.find(id);
+        if(x){ x.files = x.files || []; x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' }); await Store.save(x); }
         hideProgress(true);
         await notePage();
       }catch(err){
@@ -471,9 +490,8 @@ async function notePage(){
         const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
         try{
           await removePaths([path]);
-          const items = DB.items(DB.session);
-          const x = items.find(y => y.id === id);
-          if(x){ x.files = (x.files||[]).filter(f => f.path !== path); DB.setItems(DB.session, items); }
+          const x = Store.find(id);
+          if(x){ x.files = (x.files||[]).filter(f => f.path !== path); await Store.save(x); }
           await notePage();
         } finally { busy($('#confirm-ok'), false); }
       });
@@ -488,11 +506,13 @@ function accountPage(){
   const da = $('#del-acc');
   if(da) da.addEventListener('click', e => {
     e.preventDefault();
-    askConfirm(`Удалить аккаунт «${DB.session}»?`, () => {
-      localStorage.removeItem('cn_items_' + DB.session);
+    askConfirm(`Удалить аккаунт «${DB.session}» и все папки в облаке?`, async () => {
+      const ids = Store.cache.map(x => x.id);
+      if(ids.length) await SB.from('folders').delete().in('id', ids);
       localStorage.removeItem('cn_plan_' + DB.session);
       localStorage.removeItem('cn_pos_' + DB.session);
       clearOpen(DB.session);
+      Store.cache = [];
       if(typeof SB !== 'undefined') SB.auth.signOut();
       DB.session = ''; location.href = 'index.html';
     });
@@ -502,7 +522,7 @@ function accountPage(){
 }
 function storagePage(){
   const wrap = $('#storage-wrap'); if(!wrap) return;
-  const em = DB.session, p = DB.plan(em), L = LIMITS[p], used = usedBytes(em);
+  const em = DB.session, p = DB.plan(em), L = LIMITS[p], used = usedBytes();
   const pct = isFinite(L.bytes) ? Math.min(100, used / L.bytes * 100) : 0;
   $('#storage-bar').style.width = pct + '%';
   $('#storage-cap').textContent = isFinite(L.bytes)
@@ -587,7 +607,7 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   const { data } = await SB.auth.getSession();
   const u = data.session && data.session.user;
   if(closed.includes(page) && !u){ location.replace('index.html'); return; }
-  if(u) DB.session = u.email;
+  if(u){ DB.session = u.email; MY_UID = u.id; await Store.load(); }
   if($('#sheet')){ notePage(); return; }
   accountPage();
   storagePage();
