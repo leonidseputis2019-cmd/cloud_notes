@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вход — Облачные заметки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth">
+<h1>Облачные заметки</h1>
+<form class="auth-card" id="login-form" novalidate>
+  <input class="field" name="email" type="email" placeholder="почта...">
+  <input class="field" name="pass" type="password" placeholder="пароль...">
+  <p class="err-msg" hidden>неверные почта или пароль</p>
+  <div class="auth-row">
+    <button class="btn">вход</button>
+    <a class="btn" href="reg.html">регистрация</a>
+  </div>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>var SB = supabase.createClient('https://sjnfbmkjdzeztqjhgdkt.supabase.co', 'sb_publishable_ChWYf32PK8_9NRDXU15omg_Kc_krgDu ');</script>
+<script src="app.js"></script>
+</body>
+</html>

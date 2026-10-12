@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Стол — Облачные заметки</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <form class="search" method="get"><input id="q" name="q" placeholder="поиск..."></form>
+    <a class="iconbtn" href="settings.html"><img src="icons/gear.png" alt="настройки"></a>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main class="desk viewport" id="desk">
+    <div class="canvas" id="canvas"></div>
+    <div class="empty-wrap" id="desk-empty" hidden></div>
+  </main>
+
+  <nav class="toolbar">
+    <button class="tbtn" data-mode="cursor" title="перенос карточек"><img src="icons/cursor.png" alt=""></button>
+    <!-- ЧИНЮ: было <a href="create.html">, страницы нет. Кнопка зовёт модалку напрямую, без перехода и без истории. -->
+    <button class="tbtn" onclick="openModal()" title="создать папку"><img src="icons/plus.png" alt="создать"></button>
+    <button class="tbtn" data-mode="rename" title="переименовать"><img src="icons/pen.png" alt=""></button>
+  </nav>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card">
+      <input class="field" id="new-name" placeholder="имя...">
+      <button class="btn" id="new-ok">готово</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>var SB = supabase.createClient('https://sjnfbmkjdzeztqjhgdkt.supabase.co', 'sb_publishable_ChWyf32PK8_9NRDXU15omg_Kc_krgDu');</script>
+  <script src="app.js"></script>
+</body>
+</html>

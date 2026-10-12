@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Хранение — Облачные заметки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<section class="settings">
+  <div class="settings-head">
+    <a class="back" href="settings.html"><img src="icons/back.png" alt="назад"></a>
+    <h2>Настройки</h2>
+  </div>
+  <div id="storage-wrap">
+    <div class="progress"><i id="storage-bar"></i></div>
+    <p class="cap" id="storage-cap"></p>
+    <h3 class="cap">Тарифы</h3>
+    <div class="plans">
+      <div class="plan"><header>Базовый</header>
+        <ul><li>хранение до 50 МБ</li><li>не более 5 папок одновременно</li></ul>
+        <button class="btn" data-plan="basic">0 руб\мес</button></div>
+      <div class="plan"><header>PRO</header>
+        <ul><li>хранение до 100 ГБ</li><li>до 40 папок одновременно</li></ul>
+        <button class="btn" data-plan="pro">500 руб\мес</button></div>
+    </div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>var SB = supabase.createClient('https://sjnfbmkjdzeztqjhgdkt.supabase.co', 'sb_publishable_ChWYf32PK8_9NRDXU15omg_Kc_krgDu ');</script>
+<script src="app.js"></script>
+</body>
+</html>
