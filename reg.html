@@ -11,15 +11,32 @@
 </head>
 <body class="auth">
 <h1>Облачные заметки</h1>
-<form class="auth-card" id="reg-form" novalidate>
-  <input class="field" name="email" type="email" placeholder="почта...">
-  <input class="field" name="pass" type="password" placeholder="пароль...">
-  <input class="field" name="pass2" type="password" placeholder="повторите пароль...">
+<form id="reg-form" class="auth-card">
+  <h1>Регистрация</h1>
+  
+  <!-- Поле почты -->
+  <input type="email" name="email" class="field" placeholder="почта..." required autocomplete="email">
+  
+  <!-- Поле пароля -->
+  <input type="password" name="pass" class="field" placeholder="пароль..." required autocomplete="new-password">
+  
+  <!-- Повтор пароля -->
+  <input type="password" name="pass2" class="field" placeholder="повторите пароль..." required autocomplete="new-password">
+  
+  <!-- !!! НОВОЕ ПОЛЕ: РАНДОМНАЯ КАПЧА !!! -->
+  <!-- JS сам подставит сюда вопрос "Сколько будет X + Y?" -->
+  <input type="text" id="reg-captcha" class="field" placeholder="Сколько будет ...?" required autocomplete="off">
+  
+  <!-- Сообщение об ошибке/успехе -->
   <p class="err-msg" hidden></p>
-  <div class="auth-row"><button class="btn">регистрация</button></div>
-  <a class="link" href="index.html">уже есть аккаунт? Войти.</a>
-</form>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Кнопка -->
+  <div class="auth-row">
+    <button type="submit" class="btn">регистрация</button>
+  </div>
+  
+  <a href="index.html" class="link">уже есть аккаунт? Войти.</a>
+</form><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 var SB = supabase.createClient('https://sjnfbmkjdzeztqjhgdkt.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNjM4MDksImV4cCI6MjEwNjkzOTgwOX0.m_o3Npr7fE3rw5__-9fPiBxjXP3XgTOPHKRVUQvPg8Q');
 </script>
