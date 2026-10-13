@@ -409,3 +409,26 @@ body:has(.desk.viewport) { overflow: hidden; }
 .upload-progress .bar { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 8px; }
 .upload-progress .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent1), var(--accent2)); width: 0%; transition: width .3s ease-out; }
 .upload-progress .label { font: 400 14px 'Inter'; color: var(--ink); display: flex; justify-content: space-between; }
+/* Кнопка "Добавить ещё" внутри папки */
+.add-more {
+  width: calc(100% - 40px);
+  height: 50px;
+  background: var(--surface-tint);
+  border: 2px dashed var(--accent1);
+  border-radius: 12px;
+  color: var(--accent1);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 20px auto 30px; /* Центрируем и добавляем отступы */
+  display: flex; /* Чтобы текст был по центру */
+  align-items: center;
+  justify-content: center;
+}
+
+.add-more:hover {
+  background: var(--hover-tint);
+  border-color: var(--accent2);
+  transform: translateY(-2px);
+}
