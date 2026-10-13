@@ -226,10 +226,7 @@ body.drag-mode .canvas .card{cursor:grab}
 .field.err{border-color:#FF0000}
 .err-msg{color:var(--err);font:italic 500 20px 'Inter';text-align:center;margin-top:-12px}
 .auth-row{display:flex;gap:30px;justify-content:center}
-.btn{height:52px;padding:0 30px;background:linear-gradient(135deg,var(--accent1),var(--accent2));border-radius:var(--r);
-  color:#fff;font-size:22px;box-shadow:0 6px 18px rgba(143,107,171,.35);transition:transform .15s;
-  display:inline-flex;align-items:center;justify-content:center}
-.btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(143,107,171,.45)}
+.btn {min-width: 140px; white-space: nowrap; display: inline-flex;align-items: center;justify-content: center;padding: 10px 20px; transition: all 0.2s ease; }.btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(143,107,171,.45)}
 .btn-ghost{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-soft)}
 .link{font:italic 500 20px 'Inter';text-align:center;text-decoration:underline}
 
