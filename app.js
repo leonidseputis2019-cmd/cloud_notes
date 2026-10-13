@@ -453,30 +453,55 @@ async function notePage(){
     if(x){ x.text = textArea.value; saveSoon(x); }
   });
 
-  const addBtn = $('#add-file-btn');
+   const addBtn = $('#add-file-btn');
   if(addBtn) addBtn.addEventListener('click', () => {
     const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = '*/*';
+    inp.type = 'file'; 
+    inp.accept = '*/*';
+    inp.multiple = true; // <--- РАЗРЕШАЕМ ВЫБИРАТЬ НЕСКОЛЬКО ФАЙЛОВ
+    
     inp.onchange = async () => {
-      const f = inp.files[0]; if(!f) return;
-      if(!guardLimits(f)) return;
-      busy(addBtn, true, '⏳ грузим...');
-      showProgress(f.name);
-      try{
-        const path = await uploadFile(f, id);
-        const x = Store.find(id);
-        if(x){ x.files = x.files || []; x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' }); await Store.save(x); }
-        hideProgress(true);
-        await notePage();
-      }catch(err){
-        hideProgress(false);
-        info('Ошибка загрузки: ' + (err.message || err));
+      const files = Array.from(inp.files);
+      if(!files.length) return;
+
+      // Проверяем лимиты для всех файлов
+      for(const f of files) {
+        if(!guardLimits(f)) return; 
       }
-      finally { busy($('#add-file-btn'), false); }
+
+      busy(addBtn, true, `⏳ грузим ${files.length} файл(ов)...`);
+      
+      let successCount = 0;
+      const x = Store.find(id); // Получаем объект папки один раз
+      
+      // Загружаем файлы по очереди
+      for(const f of files) {
+        showProgress(f.name);
+        try {
+          const path = await uploadFile(f, id);
+          if(x) {
+            x.files = x.files || [];
+            x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' });
+          }
+          successCount++;
+        } catch(err) {
+          console.error('Ошибка загрузки:', f.name, err);
+          info(`Не удалось загрузить ${f.name}`);
+        }
+      }
+
+      // Сохраняем в базу ОДИН раз после всех загрузок
+      if(x && successCount > 0) await Store.save(x);
+
+      hideProgress(true);
+      busy(addBtn, false);
+      
+      if(successCount > 0) {
+        await notePage(); // Перерисовываем страницу
+      }
     };
     inp.click();
   });
-
   sh.addEventListener('click', async e => {
     const dl = e.target.closest('[data-dl]');
     if(dl){ e.preventDefault(); const url = await fileURL(dl.dataset.dl); if(url){ const a = document.createElement('a'); a.href = url; a.download = ''; a.click(); } return; }
