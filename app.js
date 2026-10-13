@@ -11,7 +11,7 @@ const CELLW = 273, CELLH = 254;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
-/* ===== сессия и тариф (локально — это удобство, не правда) ===== */
+/* ===== сессия и тариф ===== */
 const DB = {
   get session(){ return localStorage.cn_session || ''; },
   set session(v){ localStorage.cn_session = v || ''; },
@@ -19,7 +19,7 @@ const DB = {
   setPlan(e, v){ localStorage['cn_plan_' + e] = v; }
 };
 
-/* ===== папки: правда в Supabase, здесь — кэш ===== */
+/* ===== папки ===== */
 let MY_UID = '';
 const Store = {
   cache: [],
@@ -35,9 +35,10 @@ const Store = {
   },
   async remove(id){
     const { error } = await SB.from('folders').delete().eq('id', id);
-    if(error) info('Не удалось удалить из облака: ' + error.message);
+    if(error) info('Не удалось удалить из облако: ' + error.message);
   }
 };
+
 let saveT = 0;
 function saveSoon(it){ clearTimeout(saveT); saveT = setTimeout(() => Store.save(it), 500); }
 
@@ -49,18 +50,22 @@ const OPEN = {
   add(id){ const v = this.get(); if(!v.includes(id)) v.push(id); this.set(v); },
   remove(id){ this.set(this.get().filter(x => x !== id)); }
 };
+
 const ACTIVE = {
   key(){ return 'cn_active_' + DB.session; },
   get(){ return +(sessionStorage.getItem(this.key()) || 0); },
   set(v){ sessionStorage.setItem(this.key(), v || ''); }
 };
+
 const POS = {
   get(){ return JSON.parse(localStorage['cn_pos_' + DB.session] || '{}'); },
   set(v){ localStorage['cn_pos_' + DB.session] = JSON.stringify(v); }
 };
+
 function clearOpen(em){ sessionStorage.removeItem('cn_open_' + em); sessionStorage.removeItem('cn_active_' + em); }
 function currentQ(){ return (document.querySelector('.search input')?.value || '').toLowerCase().trim(); }
 function emptyHTML(img, txt){ return `<div class="empty"><img src="icons/${img}" alt=""><p>${txt}</p></div>`; }
+
 function usedBytes(){
   return Store.cache.reduce((s, it) => {
     let b = (it.text || '').length;
@@ -68,11 +73,13 @@ function usedBytes(){
     return s + b;
   }, 0);
 }
+
 function fmtSize(b){
   if(b < 1024 * 1024) return (b / 1024).toFixed(0) + ' КБ';
   if(b < 1024 * 1024 * 1024) return (b / 1024 / 1024).toFixed(1) + ' МБ';
   return (b / 1024 / 1024 / 1024).toFixed(2) + ' ГБ';
 }
+
 function fitHeaders(){
   document.querySelectorAll('.card header').forEach(h => {
     h.style.fontSize = '';
@@ -80,6 +87,7 @@ function fitHeaders(){
     while(h.scrollWidth > h.clientWidth && size > 12){ size -= 1; h.style.fontSize = size + 'px'; }
   });
 }
+
 function info(text){
   if(!$('#info')){
     document.body.insertAdjacentHTML('beforeend',
@@ -89,6 +97,7 @@ function info(text){
   $('#info-text').textContent = text;
   $('#info').hidden = false;
 }
+
 function askConfirm(text, onOk){
   if(!$('#confirm')){
     document.body.insertAdjacentHTML('beforeend',
@@ -99,11 +108,13 @@ function askConfirm(text, onOk){
   $('#confirm-ok').onclick = () => { $('#confirm').hidden = true; onOk(); };
   $('#confirm').hidden = false;
 }
+
 function busy(btn, on, txt){
   if(!btn) return;
   if(on){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = txt || '⏳ ...'; }
   else { btn.disabled = false; btn.textContent = btn.dataset.t; }
 }
+
 function guardLimits(f){
   if(f.size > MAXFILE){ info('Один файл не может быть больше 25 МБ.'); return false; }
   const L = LIMITS[DB.plan(DB.session)];
@@ -120,6 +131,7 @@ async function uid(){
   if(!data.session || !data.session.user) throw new Error('нет сессии');
   return data.session.user.id;
 }
+
 async function uploadFile(f, id){
   const u = await uid();
   const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -128,6 +140,7 @@ async function uploadFile(f, id){
   if(error) throw error;
   return path;
 }
+
 async function fileURL(path){
   if(URL_CACHE[path]) return URL_CACHE[path];
   const { data, error } = await SB.storage.from('files').createSignedUrl(path, 3600);
@@ -135,6 +148,7 @@ async function fileURL(path){
   URL_CACHE[path] = data.signedUrl;
   return data.signedUrl;
 }
+
 async function removePaths(paths){ if(paths.length) await SB.storage.from('files').remove(paths); }
 
 /* ===== прогресс-бар ===== */
@@ -161,6 +175,7 @@ function showProgress(filename){
     document.getElementById('upload-bar-fill').style.width = pct + '%';
   }, 150);
 }
+
 function hideProgress(ok){
   clearInterval(progressTimer);
   const el = document.getElementById('upload-progress');
@@ -175,12 +190,14 @@ function hideProgress(ok){
 const view = { x: 0, y: 0, z: 1 };
 let justDragged = 0;
 let lastTabClick = { id: 0, t: 0 };
+
 function applyView(){
   const c = $('#canvas'); if(!c) return;
   c.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.z})`;
   const ind = $('#view-ind');
   if(ind) ind.textContent = `${Math.round(view.z * 100)}%`;
 }
+
 function focusCard(id){
   const card = document.querySelector(`.canvas .card[data-id="${id}"]`);
   const desk = $('#desk');
@@ -200,10 +217,12 @@ function focusCard(id){
   };
   requestAnimationFrame(step);
 }
+
 function initCanvas(){
   const desk = $('#desk'); if(!desk || !$('#canvas')) return;
   if(!$('#view-ind')) document.body.insertAdjacentHTML('beforeend', '<div id="view-ind"></div>');
   applyView();
+  
   desk.addEventListener('mousedown', e => {
     const middle = e.button === 1;
     const onEmpty = e.button === 0 && !e.target.closest('.card');
@@ -214,7 +233,9 @@ function initCanvas(){
     const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
     window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
   });
+
   desk.addEventListener('auxclick', e => e.preventDefault());
+  
   desk.addEventListener('wheel', e => {
     if(!e.ctrlKey) return;
     e.preventDefault();
@@ -225,6 +246,7 @@ function initCanvas(){
     view.y = py - (py - view.y) * (nz / view.z);
     view.z = nz; applyView();
   }, { passive: false });
+
   desk.addEventListener('mousedown', e => {
     if(mode !== 'cursor' || e.button !== 0) return;
     const card = e.target.closest('.card'); if(!card || !card.dataset.id) return;
@@ -262,6 +284,7 @@ function cardHTML(it, p){
   const place = p ? `data-x="${p.x}" data-y="${p.y}" style="transform:translate(${p.x}px,${p.y}px)"` : '';
   return `<div class="card${act}" data-id="${it.id}"${place}><header>${it.pin ? '<img class="pin-mark" src="icons/pin.png" alt="">' : ''}${esc(it.name)}</header><div class="body">${body}</div></div>`;
 }
+
 function renderTabs(items){
   const t = $('#tabs'); if(!t) return;
   t.innerHTML = items.map(it => {
@@ -270,6 +293,7 @@ function renderTabs(items){
     return `<div class="tab${on ? ' on' : ''}${open ? '' : ' dim'}" data-id="${it.id}"><span class="tab-label">${esc(it.name)}</span><button class="tab-hide" data-hide="${it.id}" title="скрыть">–</button><button class="tab-x" data-del="${it.id}" title="удалить">×</button></div>`;
   }).join('');
 }
+
 function applyFilter(q){
   const d = $('#desk'); if(!d) return;
   const items = Store.cache;
@@ -282,6 +306,7 @@ function applyFilter(q){
   const emptyMsg = q ? emptyHTML('sad.png', 'Ничего не найдено...')
     : items.length ? emptyHTML('folder-x.png', 'Все папки скрыты')
     : emptyHTML('folder-x.png', 'Тут пока пусто — нажмите +');
+    
   if(canvas){
     if(!found.length){ canvas.innerHTML = ''; if(ew){ ew.hidden = false; ew.innerHTML = emptyMsg; } }
     else {
@@ -327,6 +352,7 @@ function ensureSuggest(){
   });
   return s;
 }
+
 function showSuggest(q){
   const s = ensureSuggest(); if(!s) return;
   const found = q ? Store.cache.filter(it => it.name.toLowerCase().includes(q)).slice(0, 8) : [];
@@ -334,6 +360,7 @@ function showSuggest(q){
   s.innerHTML = found.map(it => `<li data-id="${it.id}">${esc(it.name)}</li>`).join('');
   s.hidden = false;
 }
+
 function initSearch(){
   const d = $('#desk'); if(!d) return;
   const inp = document.querySelector('.search input'); if(!inp) return;
@@ -355,6 +382,7 @@ function openModal(o = {}){
   $('#new-name').classList.remove('err');
   m.hidden = false; $('#new-name').focus();
 }
+
 const mok = $('#new-ok');
 if(mok) mok.addEventListener('click', async () => {
   const inp = $('#new-name'); const name = inp.value.trim();
@@ -367,6 +395,7 @@ if(mok) mok.addEventListener('click', async () => {
   await Store.save(it);
   location.href = 'note.html?id=' + id;
 });
+
 const modal = $('#modal');
 if(modal) modal.addEventListener('mousedown', e => { if(e.target === modal) modal.hidden = true; });
 
@@ -378,6 +407,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
   document.body.classList.toggle('rename-mode', mode === 'rename');
   document.body.classList.toggle('drag-mode', mode === 'cursor');
 }));
+
 function askDelete(id){
   const it = Store.find(id); if(!it) return;
   askConfirm(`Удалить папку «${it.name}»?`, async () => {
@@ -393,6 +423,7 @@ function askDelete(id){
     } finally { busy(cb, false); }
   });
 }
+
 document.addEventListener('click', e => {
   if(performance.now() - justDragged < 400) return;
   const del = e.target.closest('[data-del]');
@@ -416,6 +447,7 @@ document.addEventListener('click', e => {
     it.pin = !it.pin; Store.save(it); applyFilter(currentQ());
   }
 });
+
 document.addEventListener('dblclick', e => {
   if(performance.now() - justDragged < 400) return;
   const card = e.target.closest('.card');
@@ -453,18 +485,17 @@ async function notePage(){
     if(x){ x.text = textArea.value; saveSoon(x); }
   });
 
-   const addBtn = $('#add-file-btn');
+  const addBtn = $('#add-file-btn');
   if(addBtn) addBtn.addEventListener('click', () => {
     const inp = document.createElement('input');
     inp.type = 'file'; 
     inp.accept = '*/*';
-    inp.multiple = true; // <--- РАЗРЕШАЕМ ВЫБИРАТЬ НЕСКОЛЬКО ФАЙЛОВ
+    inp.multiple = true; // Разрешаем выбор нескольких файлов
     
     inp.onchange = async () => {
       const files = Array.from(inp.files);
       if(!files.length) return;
 
-      // Проверяем лимиты для всех файлов
       for(const f of files) {
         if(!guardLimits(f)) return; 
       }
@@ -472,9 +503,8 @@ async function notePage(){
       busy(addBtn, true, `⏳ грузим ${files.length} файл(ов)...`);
       
       let successCount = 0;
-      const x = Store.find(id); // Получаем объект папки один раз
+      const x = Store.find(id); 
       
-      // Загружаем файлы по очереди
       for(const f of files) {
         showProgress(f.name);
         try {
@@ -490,18 +520,19 @@ async function notePage(){
         }
       }
 
-      // Сохраняем в базу ОДИН раз после всех загрузок
       if(x && successCount > 0) await Store.save(x);
 
       hideProgress(true);
       busy(addBtn, false);
       
       if(successCount > 0) {
-        await notePage(); // Перерисовываем страницу
+        await notePage(); 
       }
     };
+    
     inp.click();
   });
+
   sh.addEventListener('click', async e => {
     const dl = e.target.closest('[data-dl]');
     if(dl){ e.preventDefault(); const url = await fileURL(dl.dataset.dl); if(url){ const a = document.createElement('a'); a.href = url; a.download = ''; a.click(); } return; }
@@ -545,6 +576,7 @@ function accountPage(){
   const aa = $('#add-acc');
   if(aa) aa.addEventListener('click', e => { e.preventDefault(); location.href = 'reg.html'; });
 }
+
 function storagePage(){
   const wrap = $('#storage-wrap'); if(!wrap) return;
   const em = DB.session, p = DB.plan(em), L = LIMITS[p], used = usedBytes();
@@ -588,6 +620,18 @@ function storagePage(){
   document.addEventListener('click', e => { if(!e.target.closest('#theme-pop')&&!e.target.closest('#theme-btn')) pop.hidden = true; });
 })();
 
+/* ===== рандомная капча ===== */
+let captchaAnswer = 0;
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 10) + 1;
+  const b = Math.floor(Math.random() * 10) + 1;
+  captchaAnswer = a + b;
+  const inp = $('#reg-captcha');
+  if (inp) inp.placeholder = `Сколько будет ${a} + ${b}?`;
+}
+// Генерируем при загрузке
+generateCaptcha();
+
 /* ===== auth ===== */
 const lf = $('#login-form');
 if(lf) lf.addEventListener('submit', async e => {
@@ -602,22 +646,62 @@ if(lf) lf.addEventListener('submit', async e => {
     clearOpen(em); location.href = 'desk.html';
   } finally { busy(lb, false); }
 });
+
 const rf = $('#reg-form');
 if(rf) rf.addEventListener('submit', async e => {
   e.preventDefault();
+  
+  // --- 1. ПРОВЕРКА КАПЧИ ---
+  const captchaInput = $('#reg-captcha');
+  const userAnswer = parseInt(captchaInput.value.trim(), 10);
+  
+  if (isNaN(userAnswer) || userAnswer !== captchaAnswer) {
+    const err = rf.querySelector('.err-msg');
+    err.textContent = 'Неверный ответ! Попробуйте ещё раз.';
+    err.hidden = false;
+    if(captchaInput) captchaInput.classList.add('err');
+    generateCaptcha(); // Меняем вопрос
+    captchaInput.value = '';
+    return;
+  }
+  if(captchaInput) captchaInput.classList.remove('err');
+  // --------------------------
+
   const em = rf.email.value.trim(), p1 = rf.pass.value, p2 = rf.pass2.value;
   const err = rf.querySelector('.err-msg');
-  const bad = m => { err.textContent = m; err.hidden = false; };
+  const bad = m => { err.textContent = m; err.hidden = false; err.style.color = ''; };
+  
   if(!em || !p1 || !p2) return bad('заполните все поля');
   if(!EMAIL_RE.test(em)) return bad('похоже, это не почта');
   if(p1 !== p2) return bad('пароли не совпадают');
-  const rb = rf.querySelector('.btn'); busy(rb, true, '⏳ создаём...');
-  try{
-    const { error } = await SB.auth.signUp({ email: em, password: p1 });
+  
+  const rb = rf.querySelector('.btn'); 
+  busy(rb, true, '⏳ создаём...');
+  
+  try {
+    const { data, error } = await SB.auth.signUp({ email: em, password: p1 });
+    
     if(error) return bad(error.message);
-    clearOpen(em); location.href = 'desk.html';
-  } finally { busy(rb, false); }
+
+    // --- 2. ПРОВЕРКА НА ПОДТВЕРЖДЕНИЕ EMAIL ---
+    if (!data.session) {
+      err.textContent = '✨ Аккаунт создан! Проверьте почту для подтверждения.';
+      err.style.color = '#2f9c86'; 
+      err.hidden = false;
+      rb.textContent = 'Письмо отправлено';
+      rb.disabled = true;
+      return; 
+    }
+    // ------------------------------------------
+
+    clearOpen(em); 
+    location.href = 'desk.html';
+    
+  } finally { 
+    busy(rb, false); 
+  }
 });
+
 if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').forEach(lo => lo.addEventListener('click', async e => {
   e.preventDefault(); busy(lo, true, '⏳ выходим...');
   try{ clearOpen(DB.session); await SB.auth.signOut(); DB.session = ''; location.href = 'index.html'; }
