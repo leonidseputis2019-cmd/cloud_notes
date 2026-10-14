@@ -463,3 +463,75 @@ body:has(.desk.viewport) { overflow: hidden; }
   opacity: 1;
   text-decoration: underline;
 }
+/* ===== Стили для страницы настроек аккаунта ===== */
+
+/* Рамка для текущего аккаунта */
+.current-session-box {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+    box-shadow: inset 0 1px 3px rgba(58, 46, 69, .04);
+}
+
+#acc-email {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    word-break: break-all; /* Чтобы длинный email переносился, а не вылезал */
+    line-height: 1.4;
+}
+
+.plan-badge {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent1);
+    background: var(--hover-tint);
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+/* Кнопка выхода (второстепенная) */
+#logout.btn-ghost {
+    width: 100%;
+    margin-top: 4px;
+    border: 1px solid var(--line); /* Добавляем рамку для четкости */
+    background: var(--surface);
+    color: var(--ink);
+}
+
+#logout.btn-ghost:hover {
+    background: var(--hover-tint);
+    transform: translateY(-1px);
+}
+
+/* Ссылка удаления (опасная) */
+.danger-link {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: var(--err);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 12px;
+    padding: 8px 0;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+.danger-link:hover {
+    opacity: 1;
+    background: rgba(255, 56, 60, 0.05);
+    text-decoration: underline;
+}
