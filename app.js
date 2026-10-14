@@ -111,7 +111,7 @@ function askConfirm(text, onOk){
 
 function busy(btn, on, txt){
   if(!btn) return;
-  if(on){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = txt || '⏳ ...'; }
+  if(on){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = txt || ' ...'; }
   else { btn.disabled = false; btn.textContent = btn.dataset.t; }
 }
 
@@ -657,7 +657,7 @@ if(lf) lf.addEventListener('submit', async e => {
   const em = lf.email.value.trim(), ps = lf.pass.value;
   const bad = () => { lf.email.classList.add('err'); lf.pass.classList.add('err'); lf.querySelector('.err-msg').hidden = false; };
   if(!em || !ps) return bad();
-  const lb = lf.querySelector('.btn'); busy(lb, true, '⏳ входим...');
+  const lb = lf.querySelector('.btn'); busy(lb, true, ' входим...');
   try{
     const { error } = await SB.auth.signInWithPassword({ email: em, password: ps });
     if(error) return bad();
