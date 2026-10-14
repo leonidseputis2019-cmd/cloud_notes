@@ -509,7 +509,7 @@ async function notePage(){
         if(!guardLimits(f)) return; 
       }
 
-      busy(addBtn, true, ` грузим ${files.length} файл(ов)...`);
+      busy(addBtn, true, `⏳ грузим ${files.length} файл(ов)...`);
       
       let successCount = 0;
       const x = Store.find(id); 
