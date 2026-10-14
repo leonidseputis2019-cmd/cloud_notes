@@ -432,3 +432,34 @@ body:has(.desk.viewport) { overflow: hidden; }
   border-color: var(--accent2);
   transform: translateY(-2px);
 }
+/* Делаем кнопку выхода более явной */
+#logout {
+  background: var(--surface); /* Чуть темнее фона карточки */
+  border: 1px solid var(--line); /* Рамка для четкости */
+  color: var(--ink);
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+#logout:hover {
+  background: var(--hover-tint);
+  transform: translateY(-1px);
+}
+
+/* Оформление удаления как опасной ссылки-кнопки */
+#del-acc {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: var(--err);
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+#del-acc:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
