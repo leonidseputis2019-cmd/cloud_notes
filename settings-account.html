@@ -1,53 +1,45 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Аккаунт — Облачные заметки</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аккаунт — Облачные заметки</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="auth">
-    
-    <!-- Верхняя панель -->
-    <div class="topbar">
-        <a href="settings.html" class="iconbtn back-btn" title="Назад">
-            <img src="icons/back.png" alt="назад">
-        </a>
-        <h1 class="topbar-title">Настройки</h1>
+
+  <div class="topbar">
+    <a href="settings.html" class="iconbtn back-btn" title="Назад">
+      <img src="icons/back.png" alt="назад">
+    </a>
+    <h1 class="topbar-title">Настройки</h1>
+  </div>
+
+  <div class="acc">
+    <h3>Выбор аккаунта</h3>
+
+    <div class="current-session-box">
+      <span id="acc-email">...</span>
+      <span class="plan-badge" id="acc-plan">Базовый</span>
     </div>
 
-    <!-- Карточка аккаунта -->
-    <div class="acc">
-        <h3>Выбор аккаунта</h3>
-        
-        <!-- Рамка с текущим аккаунтом -->
-        <div class="current-session-box">
-            <span id="acc-email">...</span>
-            <span class="plan-badge" id="acc-plan">Базовый</span>
-        </div>
+    <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
 
-        <!-- 1. Главная кнопка: Добавить -->
-        <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
+    <div style="height:10px"></div>
 
-        <!-- Разделитель -->
-        <div style="height: 10px;"></div>
+    <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
 
-        <!-- 2. Второстепенная: Выйти -->
-        <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
+    <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
+  </div>
 
-        <!-- 3. Опасная: Удалить -->
-        <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
-    </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    var SB = supabase.createClient(
+      'https://sjnfbmkjdzeztqjhgdkt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNjM4MDksImV4cCI6MjEwNjkzOTgwOX0.m_o3Npr7fE3rw5__-9fPiBxjXP3XgTOPHKRVUQvPg8Q'
+    );
+  </script>
+  <script src="app.js"></script>
 
-    <!-- !!! ИНИЦИАЛИЗАЦИЯ SUPABASE (ОБЯЗАТЕЛЬНО) !!! -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Создаем клиент ДО загрузки app.js, чтобы переменная SB существовала
-        window.SB = supabase.createClient(
-            'https://sjnfbmkjdzeztqjhgdktd.supabase.co', 
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ2NzYwMDAsImV4cCI6MjA0MDI1MjAwMH0.YOUR_ANON_KEY_HERE'
-        );
-    </script>
-    <script src="app.js"></script>
 </body>
 </html>
