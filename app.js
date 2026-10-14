@@ -575,6 +575,14 @@ async function notePage(){
 
 /* ===== настройки ===== */
 function accountPage(){
+  // Проверяем, загрузился ли Supabase
+  if(typeof SB === 'undefined') {
+    console.error('Критическая ошибка: Библиотека Supabase (SB) не найдена!');
+    const em = $('#acc-email');
+    if(em) em.textContent = 'Ошибка подключения';
+    return;
+  }
+
   const em = $('#acc-email'); 
   if(em) {
     em.textContent = DB.session;
@@ -597,14 +605,13 @@ function accountPage(){
       localStorage.removeItem('cn_pos_' + DB.session);
       clearOpen(DB.session);
       Store.cache = [];
-      if(typeof SB !== 'undefined') SB.auth.signOut();
+      await SB.auth.signOut();
       DB.session = ''; location.href = 'index.html';
     });
   });
   const aa = $('#add-acc');
   if(aa) aa.addEventListener('click', e => { e.preventDefault(); location.href = 'reg.html'; });
 }
-
 function storagePage(){
   const wrap = $('#storage-wrap'); if(!wrap) return;
   const em = DB.session, p = DB.plan(em), L = LIMITS[p], used = usedBytes();
