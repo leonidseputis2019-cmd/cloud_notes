@@ -667,7 +667,7 @@ if(lf) lf.addEventListener('submit', async e => {
   const em = lf.email.value.trim(), ps = lf.pass.value;
   const bad = () => { lf.email.classList.add('err'); lf.pass.classList.add('err'); lf.querySelector('.err-msg').hidden = false; };
   if(!em || !ps) return bad();
-  const lb = lf.querySelector('.btn'); busy(lb, true, '⏳ входим...');
+  const lb = lf.querySelector('.btn'); busy(lb, true, ' входим...');
   try{
     const { error } = await SB.auth.signInWithPassword({ email: em, password: ps });
     if(error) return bad();
@@ -704,7 +704,7 @@ if(rf) rf.addEventListener('submit', async e => {
   if(p1 !== p2) return bad('пароли не совпадают');
   
   const rb = rf.querySelector('.btn'); 
-  busy(rb, true, '⏳ создаём...');
+  busy(rb, true, ' создаём...');
   
   try {
     const { data, error } = await SB.auth.signUp({ email: em, password: p1 });
