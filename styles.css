@@ -517,3 +517,9 @@ body { padding-bottom: 100px; gap: 20px; }
 
 #view-ind { right: 12px; bottom: 12px; padding: 6px 10px; font: 400 12px 'Inter'; }
 #theme-pop { top: 84px; }
+/* кнопка "+ добавить файл" — возвращаем в block, чтобы маргины работали */
+button.add-more {
+  display: flex !important;
+  width: auto !important;
+  margin: 14px 20px 22px !important;
+}
