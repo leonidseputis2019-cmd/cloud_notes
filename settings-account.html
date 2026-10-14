@@ -42,7 +42,7 @@
     <!-- !!! ИНИЦИАЛИЗАЦИЯ SUPABASE (ОБЯЗАТЕЛЬНО) !!! -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Создаем клиент ДО загрузки app.js
+        // Создаем клиент ДО загрузки app.js, чтобы переменная SB существовала
         window.SB = supabase.createClient(
             'https://sjnfbmkjdzeztqjhgdktd.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNjM4MDksImV4cCI6MjEwNjkzOTgwOX0.m_o3Npr7fE3rw5__-9fPiBxjXP3XgTOPHKRVUQvPg8Q'
