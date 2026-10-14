@@ -524,8 +524,15 @@ async function notePage(){
             x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' });
           }
           successCount++;
-        } catch(err) {
-          console.error('Ошибка загрузки:', f.name, err);
+        } catch(err)
+        {
+  if (err.message === 'LIMIT_EXCEEDED') {
+    info(' Не удалось загрузить файл: превышен лимит хранилища (50 МБ). Удалите старые файлы или обновите тариф.');
+    hideProgress(false); // Скрываем прогресс-бар с ошибкой
+    busy(addBtn, false); // Разблокируем кнопку
+    return; // Прерываем всю загрузку
+  }
+          { console.error('Ошибка загрузки:', f.name, err);
           info(`Не удалось загрузить ${f.name}`);
         }
       }
