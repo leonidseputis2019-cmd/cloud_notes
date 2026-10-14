@@ -39,7 +39,21 @@
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Подключаем Supabase НАДЕЖНО -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    
+    <!-- Твой основной скрипт -->
     <script src="app.js"></script>
+
+    <!-- Скрипт-защита: если SB все еще нет, пробуем альтернативный CDN -->
+    <script>
+        if (typeof SB === 'undefined') {
+            console.warn('Supabase JS не загружен с unpkg, пробуем jsdelivr...');
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
+            script.onload = () => location.reload(); // Перезагружаем страницу после загрузки
+            document.head.appendChild(script);
+        }
+    </script>
 </body>
 </html>
