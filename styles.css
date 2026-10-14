@@ -1,4 +1,4 @@
-/* styles.css — ФИНАЛЬНАЯ ВЕРСИЯ (Исправлены темы, кнопки, комментарии) */
+/* styles.css — ФИНАЛЬНАЯ СБОРКА v4 */
 
 :root {
   --glass: rgba(255, 255, 255, .55);
@@ -32,7 +32,7 @@
   --r: 20px;
 }
 
-/* --- ТЕМЫ (Исправлены пробелы в селекторах) --- */
+/* --- ТЕМЫ --- */
 [data-theme="mint"] {
   --accent1: #2f9c86; --accent2: #7fd0be; --line: rgba(47, 156, 134, .25); --ink: #22423b;
   --h1-grad: linear-gradient(135deg, #1d5c4d, #2f9c86);
@@ -243,7 +243,29 @@ body.drag-mode .canvas .card { cursor: grab; }
 }
 .big-plus:hover { transform: scale(1.06); }
 .file-empty p { font-size: 18px; opacity: .6; }
-.add-more { margin: 14px auto 24px; display: block; }
+
+/* Кнопка "Добавить ещё" внутри папки */
+.add-more {
+  width: calc(100% - 40px);
+  height: 50px;
+  background: var(--surface-tint);
+  border: 2px dashed var(--accent1);
+  border-radius: 12px;
+  color: var(--accent1);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 20px auto 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.add-more:hover {
+  background: var(--hover-tint);
+  border-color: var(--accent2);
+  transform: translateY(-2px);
+}
 
 /* --- ПОИСК --- */
 .wrap { display: flex; width: min(1000px, 92vw); flex: 1; min-height: 520px; }
@@ -284,6 +306,43 @@ body.drag-mode .canvas .card { cursor: grab; }
   margin: 10px auto; padding: 30px; display: flex; flex-direction: column; gap: 14px; align-items: center; box-shadow: var(--shadow-soft);
 }
 .acc h3 { font-size: 22px; }
+
+/* Рамка для текущего аккаунта */
+.current-session-box {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 3px rgba(58, 46, 69, .04);
+  box-sizing: border-box;
+}
+
+#acc-email {
+  font-size: 16px;
+  color: var(--ink);
+  word-break: break-all;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.plan-badge {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent1);
+  background: var(--hover-tint);
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
 .progress { height: 16px; background: var(--track); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 10px; }
 .progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent1), var(--accent2)); animation: grow 1s ease-out; }
 @keyframes grow { from { width: 0 } }
@@ -318,12 +377,12 @@ body.drag-mode .canvas .card { cursor: grab; }
 /* === ИСПРАВЛЕННЫЕ ПОЛЯ И КНОПКИ === */
 .field, input[type="email"], input[type="password"], input[type="text"] {
   width: 100%;
-  height: 58px; /* Фиксированная высота */
+  height: 58px;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--surface);
   padding: 0 22px;
-  font: italic 300 20px 'Inter'; /* Чуть уменьшил шрифт, чтобы влезало */
+  font: italic 300 20px 'Inter';
   color: var(--ink);
   box-shadow: var(--shadow-soft);
   transition: box-shadow .2s;
@@ -337,7 +396,7 @@ body.drag-mode .canvas .card { cursor: grab; }
 
 /* КНОПКИ (Универсальные для всех тем) */
 .btn {
-  height: 58px; /* Высота как у инпутов */
+  height: 58px;
   padding: 0 24px;
   display: inline-flex;
   align-items: center;
@@ -349,10 +408,9 @@ body.drag-mode .canvas .card { cursor: grab; }
   cursor: pointer;
   transition: all 0.2s ease;
   color: white;
-  /* Цвет берётся из переменных темы! */
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   box-shadow: 0 4px 15px var(--glow-ring);
-  white-space: nowrap; /* Текст не переносится */
+  white-space: nowrap;
 }
 .btn:hover {
   transform: translateY(-2px);
@@ -362,6 +420,7 @@ body.drag-mode .canvas .card { cursor: grab; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
+/* Второстепенная кнопка */
 .btn-ghost {
   background: var(--surface);
   color: var(--ink);
@@ -370,7 +429,31 @@ body.drag-mode .canvas .card { cursor: grab; }
 }
 .btn-ghost:hover { background: var(--hover-tint); }
 
+/* Утилитарный класс для ширины */
+.w-full { width: 100%; }
+
 .link { font: italic 500 16px 'Inter'; text-align: center; text-decoration: underline; cursor: pointer; }
+
+/* Опасная ссылка (удаление аккаунта) */
+.danger-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: var(--err);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 12px;
+  padding: 8px 0;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+.danger-link:hover {
+  opacity: 1;
+  background: rgba(255, 56, 60, 0.05);
+  text-decoration: underline;
+}
 
 /* --- МОДАЛКИ И ПРОЧЕЕ --- */
 .modal { position: fixed; inset: 0; background: rgba(58, 46, 69, .4); display: grid; place-items: center; z-index: 10; }
@@ -409,255 +492,3 @@ body:has(.desk.viewport) { overflow: hidden; }
 .upload-progress .bar { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 8px; }
 .upload-progress .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent1), var(--accent2)); width: 0%; transition: width .3s ease-out; }
 .upload-progress .label { font: 400 14px 'Inter'; color: var(--ink); display: flex; justify-content: space-between; }
-/* Кнопка "Добавить ещё" внутри папки */
-.add-more {
-  width: calc(100% - 40px);
-  height: 50px;
-  background: var(--surface-tint);
-  border: 2px dashed var(--accent1);
-  border-radius: 12px;
-  color: var(--accent1);
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 20px auto 30px; /* Центрируем и добавляем отступы */
-  display: flex; /* Чтобы текст был по центру */
-  align-items: center;
-  justify-content: center;
-}
-
-.add-more:hover {
-  background: var(--hover-tint);
-  border-color: var(--accent2);
-  transform: translateY(-2px);
-}
-/* Делаем кнопку выхода более явной */
-#logout {
-  background: var(--surface); /* Чуть темнее фона карточки */
-  border: 1px solid var(--line); /* Рамка для четкости */
-  color: var(--ink);
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-#logout:hover {
-  background: var(--hover-tint);
-  transform: translateY(-1px);
-}
-
-/* Оформление удаления как опасной ссылки-кнопки */
-#del-acc {
-  display: block;
-  width: 100%;
-  text-align: center;
-  color: var(--err);
-  font-size: 14px;
-  margin-bottom: 20px;
-  text-decoration: none;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-#del-acc:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-/* ===== Стили для страницы настроек аккаунта ===== */
-
-/* Рамка для текущего аккаунта */
-.current-session-box {
-    width: 100%;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 16px;
-    box-shadow: inset 0 1px 3px rgba(58, 46, 69, .04);
-}
-
-#acc-email {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--ink);
-    word-break: break-all; /* Чтобы длинный email переносился, а не вылезал */
-    line-height: 1.4;
-}
-
-.plan-badge {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--accent1);
-    background: var(--hover-tint);
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-/* Кнопка выхода (второстепенная) */
-#logout.btn-ghost {
-    width: 100%;
-    margin-top: 4px;
-    border: 1px solid var(--line); /* Добавляем рамку для четкости */
-    background: var(--surface);
-    color: var(--ink);
-}
-
-#logout.btn-ghost:hover {
-    background: var(--hover-tint);
-    transform: translateY(-1px);
-}
-
-/* Ссылка удаления (опасная) */
-.danger-link {
-    display: block;
-    width: 100%;
-    text-align: center;
-    color: var(--err);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 12px;
-    padding: 8px 0;
-    text-decoration: none;
-    opacity: 0.8;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-}
-
-.danger-link:hover {
-    opacity: 1;
-    background: rgba(255, 56, 60, 0.05);
-    text-decoration: underline;
-}
-/* ===== Фиксы для страницы настроек аккаунта ===== */
-
-/* Растягиваем кнопки на всю ширину карточки */
-.w-full {
-    width: 100%;
-}
-
-/* Рамка для текущего аккаунта */
-.current-session-box {
-    width: 100%;
-    padding: 14px 18px;
-    background: var(--surface); /* Светлый фон внутри рамки */
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 16px;
-    box-shadow: inset 0 1px 3px rgba(58, 46, 69, .04);
-    box-sizing: border-box; /* Чтобы padding не ломал ширину */
-}
-
-#acc-email {
-    font-size: 16px;
-    color: var(--ink);
-    word-break: break-all; /* Если email длинный - переносится */
-    line-height: 1.4;
-}
-
-.plan-badge {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--accent1);
-    background: var(--hover-tint);
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-/* Ссылка удаления (опасная) */
-.danger-link {
-    display: block;
-    width: 100%;
-    text-align: center;
-    color: var(--err);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 12px;
-    padding: 8px 0;
-    text-decoration: none;
-    opacity: 0.8;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-}
-
-.danger-link:hover {
-    opacity: 1;
-    background: rgba(255, 56, 60, 0.05);
-    text-decoration: underline;
-}
-/* ===== Фиксы для страницы настроек аккаунта ===== */
-
-/* Растягиваем кнопки на всю ширину карточки */
-.w-full {
-    width: 100%;
-}
-
-/* Рамка для текущего аккаунта */
-.current-session-box {
-    width: 100%;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 16px;
-    box-shadow: inset 0 1px 3px rgba(58, 46, 69, .04);
-    box-sizing: border-box;
-}
-
-#acc-email {
-    font-size: 16px;
-    color: var(--ink);
-    word-break: break-all; /* Длинный email будет переноситься */
-    line-height: 1.4;
-}
-
-.plan-badge {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--accent1);
-    background: var(--hover-tint);
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-/* Ссылка удаления (опасная) */
-.danger-link {
-    display: block;
-    width: 100%;
-    text-align: center;
-    color: var(--err);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 12px;
-    padding: 8px 0;
-    text-decoration: none;
-    opacity: 0.8;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-}
-
-.danger-link:hover {
-    opacity: 1;
-    background: rgba(255, 56, 60, 0.05);
-    text-decoration: underline;
-}
