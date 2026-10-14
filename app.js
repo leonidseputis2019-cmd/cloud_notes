@@ -136,8 +136,18 @@ async function uploadFile(f, id){
   const u = await uid();
   const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const path = `${u}/${id}/${Date.now()}_${safe}`;
-  const { error } = await SB.storage.from('files').upload(path, f, { upsert: true });
-  if(error) throw error;
+  
+  const { data, error } = await SB.storage.from('files').upload(path, f, { upsert: true });
+  
+  // Проверяем, не сработал ли наш триггер лимита
+  if (error) {
+    // Если в тексте ошибки есть слова про лимит или схему - это наша защита
+    if (error.message.includes('limit') || error.message.includes('schema mismatch')) {
+      throw new Error('LIMIT_EXCEEDED'); 
+    }
+    throw error;
+  }
+  
   return path;
 }
 
