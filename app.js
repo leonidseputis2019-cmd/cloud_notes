@@ -35,7 +35,7 @@ const Store = {
   },
   async remove(id){
     const { error } = await SB.from('folders').delete().eq('id', id);
-    if(error) info('Не удалось удалить из облако: ' + error.message);
+    if(error) info('Не удалось удалить из облака: ' + error.message);
   }
 };
 
@@ -139,9 +139,8 @@ async function uploadFile(f, id){
   
   const { data, error } = await SB.storage.from('files').upload(path, f, { upsert: true });
   
-  // Проверяем, не сработал ли наш триггер лимита
+  // Обработка ошибки лимита от SQL-триггера
   if (error) {
-    // Если в тексте ошибки есть слова про лимит или схему - это наша защита
     if (error.message.includes('limit') || error.message.includes('schema mismatch')) {
       throw new Error('LIMIT_EXCEEDED'); 
     }
@@ -510,7 +509,7 @@ async function notePage(){
         if(!guardLimits(f)) return; 
       }
 
-      busy(addBtn, true, `⏳ грузим ${files.length} файл(ов)...`);
+      busy(addBtn, true, ` грузим ${files.length} файл(ов)...`);
       
       let successCount = 0;
       const x = Store.find(id); 
@@ -524,15 +523,17 @@ async function notePage(){
             x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' });
           }
           successCount++;
-        } catch(err)
-        {
-  if (err.message === 'LIMIT_EXCEEDED') {
-    info(' Не удалось загрузить файл: превышен лимит хранилища (50 МБ). Удалите старые файлы или обновите тариф.');
-    hideProgress(false); // Скрываем прогресс-бар с ошибкой
-    busy(addBtn, false); // Разблокируем кнопку
-    return; // Прерываем всю загрузку
-  }
-          { console.error('Ошибка загрузки:', f.name, err);
+        } catch(err) {
+          // Если это наша ошибка лимита - показываем красивое сообщение
+          if (err.message === 'LIMIT_EXCEEDED') {
+            info('Не удалось загрузить файл: превышен лимит хранилища (50 МБ). Удалите старые файлы или обновите тариф.');
+            hideProgress(false);
+            busy(addBtn, false);
+            return; // Прерываем всю загрузку
+          }
+          
+          // Обычная ошибка сети
+          console.error('Ошибка загрузки:', f.name, err);
           info(`Не удалось загрузить ${f.name}`);
         }
       }
