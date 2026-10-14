@@ -6,14 +6,15 @@
     <title>Аккаунт — Облачные заметки</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="auth">
+<body class="auth"> <!-- Класс auth нужен для центрирования -->
     
-    <!-- Верхняя панель настроек -->
+    <!-- Верхняя панель -->
     <div class="topbar">
         <a href="settings.html" class="iconbtn back-btn" title="Назад">
             <img src="icons/back.png" alt="назад">
         </a>
         <h1 class="topbar-title">Настройки</h1>
+        <!-- Кнопка темы (если нужна здесь) -->
     </div>
 
     <!-- Карточка аккаунта -->
@@ -22,18 +23,19 @@
         
         <!-- Блок с текущим аккаунтом (в рамке) -->
         <div class="current-session-box">
-            <span id="acc-email">...</span>
+            <span id="acc-email" style="font-weight: 600;">...</span>
             <span class="plan-badge" id="acc-plan">Базовый</span>
         </div>
 
         <!-- 1. Главное действие: Добавить аккаунт -->
-        <button id="add-acc" class="btn">Добавить аккаунт</button>
+        <!-- Добавил класс w-full для ширины -->
+        <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
 
-        <!-- Разделитель или отступ -->
+        <!-- Разделитель -->
         <div style="height: 10px;"></div>
 
         <!-- 2. Второстепенное действие: Выйти -->
-        <button id="logout" class="btn btn-ghost">Выйти из аккаунта</button>
+        <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
 
         <!-- 3. Опасное действие: Удалить -->
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
