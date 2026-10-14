@@ -111,7 +111,7 @@ function askConfirm(text, onOk){
 
 function busy(btn, on, txt){
   if(!btn) return;
-  if(on){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = txt || ' ...'; }
+  if(on){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = txt || '⏳ ...'; }
   else { btn.disabled = false; btn.textContent = btn.dataset.t; }
 }
 
@@ -420,7 +420,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 function askDelete(id){
   const it = Store.find(id); if(!it) return;
   askConfirm(`Удалить папку «${it.name}»?`, async () => {
-    const cb = $('#confirm-ok'); busy(cb, true, ' удаляем...');
+    const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
     try{
       const paths = (it.files || []).map(f => f.path).filter(Boolean);
       if(paths.length) await removePaths(paths);
@@ -481,7 +481,7 @@ async function notePage(){
       const url = await fileURL(f.path);
       const isImg = (f.mime || '').startsWith('image/');
       const thumb = isImg ? `<img class="file-thumb" src="${url}" alt="">` : `<img class="file-thumb" src="icons/${ICON.file}" alt="">`;
-      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать"></button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
+      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать">⬇</button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
     }
     fileList = `<div class="file-list">${rows.join('')}</div><button class="btn add-more" id="add-file-btn">+ добавить файл</button>`;
   }
@@ -575,8 +575,18 @@ async function notePage(){
 
 /* ===== настройки ===== */
 function accountPage(){
-  const em = $('#acc-email'); if(em) em.textContent = DB.session;
-  const pl = $('#acc-plan'); if(pl) pl.textContent = LIMITS[DB.plan(DB.session)].label;
+  const em = $('#acc-email'); 
+  if(em) {
+    em.textContent = DB.session;
+    // Уменьшаем шрифт и разрешаем перенос, чтобы влезало в рамку
+    em.style.fontSize = '14px';
+    em.style.wordBreak = 'break-all';
+    em.style.lineHeight = '1.3';
+  }
+  
+  const pl = $('#acc-plan'); 
+  if(pl) pl.textContent = LIMITS[DB.plan(DB.session)].label;
+  
   const da = $('#del-acc');
   if(da) da.addEventListener('click', e => {
     e.preventDefault();
@@ -657,7 +667,7 @@ if(lf) lf.addEventListener('submit', async e => {
   const em = lf.email.value.trim(), ps = lf.pass.value;
   const bad = () => { lf.email.classList.add('err'); lf.pass.classList.add('err'); lf.querySelector('.err-msg').hidden = false; };
   if(!em || !ps) return bad();
-  const lb = lf.querySelector('.btn'); busy(lb, true, ' входим...');
+  const lb = lf.querySelector('.btn'); busy(lb, true, '⏳ входим...');
   try{
     const { error } = await SB.auth.signInWithPassword({ email: em, password: ps });
     if(error) return bad();
@@ -694,7 +704,7 @@ if(rf) rf.addEventListener('submit', async e => {
   if(p1 !== p2) return bad('пароли не совпадают');
   
   const rb = rf.querySelector('.btn'); 
-  busy(rb, true, ' создаём...');
+  busy(rb, true, '⏳ создаём...');
   
   try {
     const { data, error } = await SB.auth.signUp({ email: em, password: p1 });
