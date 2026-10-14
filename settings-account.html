@@ -16,12 +16,23 @@
     <h2>Настройки</h2>
   </div>
   <div class="acc">
-    <h3>выбор аккаунта</h3>
-    <div id="acc-list" style="display:flex;flex-direction:column;gap:12px;align-items:center"></div>
-    <a class="del" id="del-acc" href="#">удалить аккаунт</a>
-    <button class="mbtn" id="logout">выйти из аккаунта</button>
-    <button class="btn" id="add-acc">добавить аккаунт</button>
-  </div>
+  <h3>Выбор аккаунта</h3>
+  
+  <!-- Показываем текущий email и тариф -->
+  <p style="font-size: 18px; opacity: 0.8; margin-bottom: 10px;">
+    Текущий: <b id="acc-email">...</b> 
+    <span style="opacity: 0.6;">(<span id="acc-plan">Базовый</span>)</span>
+  </p>
+  <button id="logout" class="btn btn-ghost" style="width: 100%; margin-bottom: 10px;">
+    Выйти из аккаунта
+  </button>
+  <button id="del-acc" class="link" style="background: none; border: none; font-size: 16px; color: var(--err); cursor: pointer;">
+    Удалить аккаунт навсегда
+  </button>
+  <button id="add-acc" class="btn" style="width: 100%; margin-top: 10px;">
+    Добавить аккаунт
+  </button>
+</div>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
