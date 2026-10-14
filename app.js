@@ -140,10 +140,11 @@ async function uploadFile(f, id){
   const { data, error } = await SB.storage.from('files').upload(path, f, { upsert: true });
   
   // Обработка ошибки лимита от SQL-триггера
-   if (error) {
-    // Если вдруг ошибка осталась (кэш или другой триггер), логируем её
-    console.error('Storage Error:', error);
-    throw error; 
+  if (error) {
+    if (error.message.includes('limit') || error.message.includes('schema mismatch')) {
+      throw new Error('LIMIT_EXCEEDED'); 
+    }
+    throw error;
   }
   
   return path;
@@ -419,7 +420,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 function askDelete(id){
   const it = Store.find(id); if(!it) return;
   askConfirm(`Удалить папку «${it.name}»?`, async () => {
-    const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
+    const cb = $('#confirm-ok'); busy(cb, true, ' удаляем...');
     try{
       const paths = (it.files || []).map(f => f.path).filter(Boolean);
       if(paths.length) await removePaths(paths);
@@ -480,7 +481,7 @@ async function notePage(){
       const url = await fileURL(f.path);
       const isImg = (f.mime || '').startsWith('image/');
       const thumb = isImg ? `<img class="file-thumb" src="${url}" alt="">` : `<img class="file-thumb" src="icons/${ICON.file}" alt="">`;
-      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать">⬇</button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
+      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать"></button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
     }
     fileList = `<div class="file-list">${rows.join('')}</div><button class="btn add-more" id="add-file-btn">+ добавить файл</button>`;
   }
@@ -693,7 +694,7 @@ if(rf) rf.addEventListener('submit', async e => {
   if(p1 !== p2) return bad('пароли не совпадают');
   
   const rb = rf.querySelector('.btn'); 
-  busy(rb, true, '⏳ создаём...');
+  busy(rb, true, ' создаём...');
   
   try {
     const { data, error } = await SB.auth.signUp({ email: em, password: p1 });
