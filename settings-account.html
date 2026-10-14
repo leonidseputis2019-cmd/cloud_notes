@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Аккаунт — Облачные заметки</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- 1. Сначала загружаем Supabase НАДЕЖНО -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    
+    <!-- 2. Если unpkg не сработал, пробуем jsdelivr БЕЗ перезагрузки -->
+    <script>
+        if (typeof supabase === 'undefined' && typeof SB === 'undefined') {
+            document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"><\/scr' + 'ipt>');
+        }
+    </script>
 </head>
 <body class="auth">
     
@@ -39,21 +49,26 @@
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
     </div>
 
-    <!-- Подключаем Supabase НАДЕЖНО -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-    
-    <!-- Твой основной скрипт -->
-    <script src="app.js"></script>
-
-    <!-- Скрипт-защита: если SB все еще нет, пробуем альтернативный CDN -->
+    <!-- 3. Только ПОСЛЕ загрузки SB запускаем app.js -->
     <script>
-        if (typeof SB === 'undefined') {
-            console.warn('Supabase JS не загружен с unpkg, пробуем jsdelivr...');
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-            script.onload = () => location.reload(); // Перезагружаем страницу после загрузки
-            document.head.appendChild(script);
+        // Ждем, пока SB появится в глобальной области видимости
+        function waitForSB(callback) {
+            if (typeof supabase !== 'undefined' || typeof SB !== 'undefined') {
+                // Нормализуем имя переменной, если нужно
+                if (typeof supabase !== 'undefined' && typeof SB === 'undefined') {
+                    window.SB = supabase; 
+                }
+                callback();
+            } else {
+                setTimeout(() => waitForSB(callback), 100);
+            }
         }
+
+        waitForSB(() => {
+            const script = document.createElement('script');
+            script.src = 'app.js';
+            document.body.appendChild(script);
+        });
     </script>
 </body>
 </html>
