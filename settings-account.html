@@ -6,32 +6,29 @@
   <title>Аккаунт — Облачные заметки</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="auth">
+<body>
 
-  <div class="topbar">
-    <a href="settings.html" class="iconbtn back-btn" title="Назад">
-      <img src="icons/back.png" alt="назад">
-    </a>
-    <h1 class="topbar-title">Настройки</h1>
-  </div>
-
-  <div class="acc">
-    <h3>Выбор аккаунта</h3>
-
-    <div class="current-session-box">
-      <span id="acc-email">...</span>
-      <span class="plan-badge" id="acc-plan">Базовый</span>
+  <div class="settings">
+    <div class="settings-head">
+      <a href="settings.html" class="back"><img src="icons/back.png" alt="назад"></a>
+      <h2>Настройки</h2>
     </div>
 
-    <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
+    <div class="acc">
+      <h3>Выбор аккаунта</h3>
 
-    <div style="height:10px"></div>
+      <div class="current-session-box">
+        <span id="acc-email">...</span>
+        <span class="plan-badge" id="acc-plan">Базовый</span>
+      </div>
 
-    <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
-
-    <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
+      <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
+      <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
+      <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
+    </div>
   </div>
 
+  <!-- ИНИЦИАЛИЗАЦИЯ. URL И КЛЮЧ — КОПИЯ ИЗ index.html, БЕЗ ЭТОГО СНОВА ВЫКИНЕТ -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     var SB = supabase.createClient(
