@@ -20,7 +20,7 @@
     <div class="acc">
         <h3>Выбор аккаунта</h3>
         
-        <!-- Рамка с текущим аккаунтом -->
+        <!-- Блок с текущим аккаунтом (в рамке) -->
         <div class="current-session-box">
             <span id="acc-email" style="font-weight: 600;">...</span>
             <span class="plan-badge" id="acc-plan">Базовый</span>
@@ -39,6 +39,7 @@
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
     </div>
 
+    <!-- ВАЖНО: Сначала Supabase, потом твой код -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
