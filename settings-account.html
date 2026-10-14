@@ -5,16 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Аккаунт — Облачные заметки</title>
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- 1. Сначала загружаем Supabase НАДЕЖНО -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-    
-    <!-- 2. Если unpkg не сработал, пробуем jsdelivr БЕЗ перезагрузки -->
-    <script>
-        if (typeof supabase === 'undefined' && typeof SB === 'undefined') {
-            document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"><\/scr' + 'ipt>');
-        }
-    </script>
 </head>
 <body class="auth">
     
@@ -49,26 +39,14 @@
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
     </div>
 
-    <!-- 3. Только ПОСЛЕ загрузки SB запускаем app.js -->
+    <!-- !!! ВОТ ЭТОГО НЕ ХВАТАЛО !!! -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Ждем, пока SB появится в глобальной области видимости
-        function waitForSB(callback) {
-            if (typeof supabase !== 'undefined' || typeof SB !== 'undefined') {
-                // Нормализуем имя переменной, если нужно
-                if (typeof supabase !== 'undefined' && typeof SB === 'undefined') {
-                    window.SB = supabase; 
-                }
-                callback();
-            } else {
-                setTimeout(() => waitForSB(callback), 100);
-            }
-        }
-
-        waitForSB(() => {
-            const script = document.createElement('script');
-            script.src = 'app.js';
-            document.body.appendChild(script);
-        });
+        var SB = supabase.createClient(
+            'https://sjnfbmkjdzeztqjhgdktd.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNjM4MDksImV4cCI6MjEwNjkzOTgwOX0.m_o3Npr7fE3rw5__-9fPiBxjXP3XgTOPHKRVUQvPg8Q'
+        );
     </script>
+    <script src="app.js"></script>
 </body>
 </html>
