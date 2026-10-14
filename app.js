@@ -140,11 +140,10 @@ async function uploadFile(f, id){
   const { data, error } = await SB.storage.from('files').upload(path, f, { upsert: true });
   
   // Обработка ошибки лимита от SQL-триггера
-  if (error) {
-    if (error.message.includes('limit') || error.message.includes('schema mismatch')) {
-      throw new Error('LIMIT_EXCEEDED'); 
-    }
-    throw error;
+   if (error) {
+    // Если вдруг ошибка осталась (кэш или другой триггер), логируем её
+    console.error('Storage Error:', error);
+    throw error; 
   }
   
   return path;
