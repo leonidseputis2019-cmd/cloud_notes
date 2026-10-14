@@ -6,7 +6,7 @@
     <title>Аккаунт — Облачные заметки</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="auth"> <!-- Класс auth нужен для центрирования -->
+<body class="auth">
     
     <!-- Верхняя панель -->
     <div class="topbar">
@@ -14,30 +14,28 @@
             <img src="icons/back.png" alt="назад">
         </a>
         <h1 class="topbar-title">Настройки</h1>
-        <!-- Кнопка темы (если нужна здесь) -->
     </div>
 
     <!-- Карточка аккаунта -->
     <div class="acc">
         <h3>Выбор аккаунта</h3>
         
-        <!-- Блок с текущим аккаунтом (в рамке) -->
+        <!-- Рамка с текущим аккаунтом -->
         <div class="current-session-box">
             <span id="acc-email" style="font-weight: 600;">...</span>
             <span class="plan-badge" id="acc-plan">Базовый</span>
         </div>
 
-        <!-- 1. Главное действие: Добавить аккаунт -->
-        <!-- Добавил класс w-full для ширины -->
+        <!-- 1. Главная кнопка: Добавить -->
         <button id="add-acc" class="btn w-full">Добавить аккаунт</button>
 
         <!-- Разделитель -->
         <div style="height: 10px;"></div>
 
-        <!-- 2. Второстепенное действие: Выйти -->
+        <!-- 2. Второстепенная: Выйти -->
         <button id="logout" class="btn btn-ghost w-full">Выйти из аккаунта</button>
 
-        <!-- 3. Опасное действие: Удалить -->
+        <!-- 3. Опасная: Удалить -->
         <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
     </div>
 
