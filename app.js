@@ -420,7 +420,7 @@ document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click'
 function askDelete(id){
   const it = Store.find(id); if(!it) return;
   askConfirm(`Удалить папку «${it.name}»?`, async () => {
-    const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
+    const cb = $('#confirm-ok'); busy(cb, true, ' удаляем...');
     try{
       const paths = (it.files || []).map(f => f.path).filter(Boolean);
       if(paths.length) await removePaths(paths);
@@ -575,14 +575,6 @@ async function notePage(){
 
 /* ===== настройки ===== */
 function accountPage(){
-  // Проверяем, загрузился ли Supabase
-  if(typeof SB === 'undefined') {
-    console.error('Критическая ошибка: Библиотека Supabase (SB) не найдена!');
-    const em = $('#acc-email');
-    if(em) em.textContent = 'Ошибка подключения';
-    return;
-  }
-
   const em = $('#acc-email'); 
   if(em) {
     em.textContent = DB.session;
@@ -605,13 +597,14 @@ function accountPage(){
       localStorage.removeItem('cn_pos_' + DB.session);
       clearOpen(DB.session);
       Store.cache = [];
-      await SB.auth.signOut();
+      if(typeof SB !== 'undefined') SB.auth.signOut();
       DB.session = ''; location.href = 'index.html';
     });
   });
   const aa = $('#add-acc');
   if(aa) aa.addEventListener('click', e => { e.preventDefault(); location.href = 'reg.html'; });
 }
+
 function storagePage(){
   const wrap = $('#storage-wrap'); if(!wrap) return;
   const em = DB.session, p = DB.plan(em), L = LIMITS[p], used = usedBytes();
@@ -738,7 +731,7 @@ if(rf) rf.addEventListener('submit', async e => {
 });
 
 if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').forEach(lo => lo.addEventListener('click', async e => {
-  e.preventDefault(); busy(lo, true, '⏳ выходим...');
+  e.preventDefault(); busy(lo, true, ' выходим...');
   try{ clearOpen(DB.session); await SB.auth.signOut(); DB.session = ''; location.href = 'index.html'; }
   finally { busy(lo, false); }
 }));
