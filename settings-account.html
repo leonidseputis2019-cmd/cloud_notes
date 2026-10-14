@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Аккаунт — Облачные заметки</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аккаунт — Облачные заметки</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-<section class="settings">
-  <div class="settings-head">
-    <a class="back" href="settings.html"><img src="icons/back.png" alt="назад"></a>
-    <h2>Настройки</h2>
-  </div>
-  <div class="acc">
-  <h3>Выбор аккаунта</h3>
-  
-  <!-- Показываем текущий email и тариф -->
-  <p style="font-size: 18px; opacity: 0.8; margin-bottom: 10px;">
-    Текущий: <b id="acc-email">...</b> 
-    <span style="opacity: 0.6;">(<span id="acc-plan">Базовый</span>)</span>
-  </p>
-  <button id="logout" class="btn btn-ghost" style="width: 100%; margin-bottom: 10px;">
-    Выйти из аккаунта
-  </button>
-  <button id="del-acc" class="link" style="background: none; border: none; font-size: 16px; color: var(--err); cursor: pointer;">
-    Удалить аккаунт навсегда
-  </button>
-  <button id="add-acc" class="btn" style="width: 100%; margin-top: 10px;">
-    Добавить аккаунт
-  </button>
-</div>
-</section>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-var SB = supabase.createClient('https://sjnfbmkjdzeztqjhgdkt.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqbmZibWtqZHplenRxamhnZGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNjM4MDksImV4cCI6MjEwNjkzOTgwOX0.m_o3Npr7fE3rw5__-9fPiBxjXP3XgTOPHKRVUQvPg8Q');
-</script>
-<script src="app.js"></script>
+<body class="auth">
+    
+    <!-- Верхняя панель настроек -->
+    <div class="topbar">
+        <a href="settings.html" class="iconbtn back-btn" title="Назад">
+            <img src="icons/back.png" alt="назад">
+        </a>
+        <h1 class="topbar-title">Настройки</h1>
+    </div>
+
+    <!-- Карточка аккаунта -->
+    <div class="acc">
+        <h3>Выбор аккаунта</h3>
+        
+        <!-- Блок с текущим аккаунтом (в рамке) -->
+        <div class="current-session-box">
+            <span id="acc-email">...</span>
+            <span class="plan-badge" id="acc-plan">Базовый</span>
+        </div>
+
+        <!-- 1. Главное действие: Добавить аккаунт -->
+        <button id="add-acc" class="btn">Добавить аккаунт</button>
+
+        <!-- Разделитель или отступ -->
+        <div style="height: 10px;"></div>
+
+        <!-- 2. Второстепенное действие: Выйти -->
+        <button id="logout" class="btn btn-ghost">Выйти из аккаунта</button>
+
+        <!-- 3. Опасное действие: Удалить -->
+        <a href="#" id="del-acc" class="danger-link">Удалить аккаунт навсегда</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
 </body>
 </html>
