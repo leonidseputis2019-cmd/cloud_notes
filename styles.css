@@ -523,3 +523,51 @@ button.add-more {
   width: auto !important;
   margin: 14px 20px 22px !important;
 }
+/* ===== MOBILE OVERRIDE — конец файла, перебивает кашу ===== */
+@media (max-width: 600px) {
+
+  /* --- ФОРМА ВХОДА/РЕГИСТРАЦИИ (главная боль: padding 85px жрал контент) --- */
+  .auth { gap: 28px; padding: 16px 0 40px; }
+  .auth h1 { font: 700 34px/1.15 'Inter'; padding: 0 12px; }
+  .auth-card { padding: 26px 20px; gap: 18px; }          /* 85px -> 20px, вот где собака */
+  .field,
+  .auth-card input[type="email"],
+  .auth-card input[type="password"],
+  .auth-card input[type="text"] { font: italic 300 16px 'Inter'; padding: 0 16px; }
+  .auth-row { gap: 12px; flex-wrap: wrap; }
+  .err-msg { font-size: 14px; }
+
+  /* --- ВЕРХНЯЯ ПАНЕЛЬ + ПОИСК (340px search + 2 иконки = вылезало за 390) --- */
+  .topbar { height: 64px; padding: 0 10px; gap: 8px; border-radius: 0 0 14px 14px; }
+  .search { width: auto; flex: 1; min-width: 0; height: 40px; padding: 0 6px 0 12px; border-radius: 20px; }
+  .search input { height: 26px; font: italic 300 14px 'Inter'; padding: 0 10px; }
+  .iconbtn { width: 42px; height: 40px; border-radius: 8px; }
+  .iconbtn img { width: 24px; }
+  #theme-pop { top: 72px; right: 10px; padding: 8px; gap: 8px; }
+
+  /* --- ВКЛАДКИ-ЯЗЫЧКИ --- */
+  .tabs { margin-top: -18px; padding: 0 12px; gap: 8px; }
+  .tab { height: 38px; padding: 0 12px; gap: 7px; font-size: 14px; border-radius: 0 0 12px 12px; }
+  .tab-label { max-width: 90px; }
+  .tab-hide, .tab-x { font: 400 14px/1 'Inter'; }
+
+  /* --- НАСТРОЙКИ: обёртка + шапка (padding 90px съедал 92vw) --- */
+  .settings { padding: 20px 16px; border-radius: 14px; }
+  .settings-head { height: 52px; margin: -20px -16px 22px; border-radius: 14px 14px 0 0; }  /* синхрон с padding! */
+  .settings-head h2 { font-size: 22px; }
+  .settings-head .back { left: 12px; top: 4px; width: 44px; height: 44px; }
+  .mbtn { height: 50px; font-size: 20px; }
+
+  /* --- АККАУНТ (408px > 390 вылезало) --- */
+  .acc { width: 100%; max-width: none; padding: 20px 16px; gap: 12px; border-radius: 14px; }
+  .acc h3 { font-size: 18px; }
+  .current-session-box { padding: 12px 14px; flex-wrap: wrap; }
+  #acc-email { font-size: 13px; }
+  .plan-badge { font-size: 11px; }
+
+  /* --- ТАРИФЫ (267*2 + gap60 = 594 не влезало в ряд) --- */
+  .plans { gap: 14px; }
+  .plan { width: 100%; }
+  .plan header { font-size: 20px; }
+  .progress { height: 12px; }
+}
