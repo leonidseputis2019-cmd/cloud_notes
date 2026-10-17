@@ -571,3 +571,4 @@ button.add-more {
   .plan header { font-size: 20px; }
   .progress { height: 12px; }
 }
+.desk.viewport { overflow: hidden; }
