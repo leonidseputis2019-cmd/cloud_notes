@@ -271,14 +271,19 @@ function initCanvas(){
     }
   });
 
-  const pend = e => {
-    if(gesture === 'pinch') return;
+   const pend = e => {
     ptrs.delete(e.pointerId);
+    if(gesture === 'pinch'){
+      if(ptrs.size < 2){ gesture = ''; g = null; }
+      return;
+    }
     if(gesture === 'card'){
       g.card.classList.remove('dragging');
       if(g.moved){
         justDragged = performance.now();
-        const p = POS.get(); p[g.id] = {x: Math.round(+g.card.dataset.x), y: Math.round(+g.card.dataset.y)}; POS.set(p);
+        const p = POS.get();
+        p[g.id] = {x: Math.round(+g.card.dataset.x), y: Math.round(+g.card.dataset.y)};
+        POS.set(p);
       } else if(e.pointerType === 'touch' && performance.now() - g.t0 < 350){
         location.href = 'note.html?id=' + g.id;
       }
