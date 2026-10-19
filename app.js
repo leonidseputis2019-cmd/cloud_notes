@@ -771,13 +771,17 @@ if(rf) rf.addEventListener('submit', async e => {
     if(error) return bad(error.message);
 
     // --- 2. ПРОВЕРКА НА ПОДТВЕРЖДЕНИЕ EMAIL ---
-    if (!data.session) {
-      err.textContent = '✨ Аккаунт создан! Проверьте почту для подтверждения.';
-      err.style.color = '#2f9c86'; 
+        if (!data.session) {
+      err.innerHTML =
+        '✨ Аккаунт создан! Мы отправили письмо на английском.<br>' +
+        'Шаг 1 — открой почту и нажми синюю ссылку <b>Confirm email address</b>.<br>' +
+        'Шаг 2 — вернись на эту страницу.<br>' +
+        'Шаг 3 — войди своим email и паролем.';
+      err.style.color = '#2f9c86';
       err.hidden = false;
       rb.textContent = 'Письмо отправлено';
       rb.disabled = true;
-      return; 
+      return;
     }
     // ------------------------------------------
 
