@@ -232,66 +232,100 @@ function initCanvas(){
   if(!$('#view-ind')) document.body.insertAdjacentHTML('beforeend','<div id="view-ind"></div>');
   applyView();
 
-  const ptrs = new Map();      // pointerId -> {x,y}
-  let gesture = '';            // '' | 'pan' | 'card' | 'pinch'
-  let g = null;                // данные текущего жеста
-  const d2 = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const ptrs = new Map();
+  let gesture = '';
+  let g = null;
+  const d2 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const td2 = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
+  // ---- POINTER: только ОДИН палец (pan / drag / tap). Во время pinch молчим. ----
   desk.addEventListener('pointerdown', e => {
-    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(gesture === 'pinch') return;
+    ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     try{ desk.setPointerCapture(e.pointerId); }catch(_){}
-    if(ptrs.size === 2){ const [a,b]=[...ptrs.values()]; gesture='pinch'; g={d0:d2(a,b),z0:view.z}; return; }
-    if(ptrs.size > 2) return;
+    if(ptrs.size > 1) return;
     const card = e.target.closest('.card');
-    if(card && card.dataset.id && mode==='cursor'){
-      gesture='card'; g={id:+card.dataset.id,card,p0:{x:+card.dataset.x||0,y:+card.dataset.y||0},sx:e.clientX,sy:e.clientY,t0:performance.now(),moved:false};
+    if(card && card.dataset.id && mode === 'cursor'){
+      gesture = 'card';
+      g = {id: +card.dataset.id, card, p0:{x:+card.dataset.x||0, y:+card.dataset.y||0}, sx:e.clientX, sy:e.clientY, t0:performance.now(), moved:false};
     } else if(!card){
-      gesture='pan'; g={sx:e.clientX,sy:e.clientY,ox:view.x,oy:view.y};
-    } else gesture='';
+      gesture = 'pan';
+      g = {sx:e.clientX, sy:e.clientY, ox:view.x, oy:view.y};
+    } else gesture = '';
   });
 
   desk.addEventListener('pointermove', e => {
+    if(gesture === 'pinch') return;
     if(!ptrs.has(e.pointerId)) return;
-    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(gesture==='pinch' && ptrs.size>=2){
-      const [a,b]=[...ptrs.values()], r=desk.getBoundingClientRect();
-      const cx=(a.x+b.x)/2-r.left, cy=(a.y+b.y)/2-r.top;
-     const nz = Math.min(2, Math.max(0.4, view.z * (e.deltaY < 0 ? 1.1 : 0.9)));
-const ratio = nz / view.z;
-view.x = px - (px - view.x) * ratio;
-view.y = py - (py - view.y) * ratio;
-view.z = nz;
-applyView();
+    ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(gesture === 'pan' && ptrs.size === 1){
+      view.x = g.ox + (e.clientX - g.sx); view.y = g.oy + (e.clientY - g.sy); applyView(); return;
     }
-    if(gesture==='pan' && ptrs.size===1){ view.x=g.ox+(e.clientX-g.sx); view.y=g.oy+(e.clientY-g.sy); applyView(); return; }
-    if(gesture==='card' && ptrs.size===1){
-      if(!g.moved && Math.hypot(e.clientX-g.sx,e.clientY-g.sy)<8) return;
-      g.moved=true; g.card.classList.add('dragging');
-      const nx=g.p0.x+(e.clientX-g.sx)/view.z, ny=g.p0.y+(e.clientY-g.sy)/view.z;
-      g.card.style.transform=`translate(${nx}px,${ny}px)`; g.card.dataset.x=nx; g.card.dataset.y=ny;
+    if(gesture === 'card' && ptrs.size === 1){
+      if(!g.moved && Math.hypot(e.clientX - g.sx, e.clientY - g.sy) < 8) return;
+      g.moved = true; g.card.classList.add('dragging');
+      const nx = g.p0.x + (e.clientX - g.sx) / view.z;
+      const ny = g.p0.y + (e.clientY - g.sy) / view.z;
+      g.card.style.transform = `translate(${nx}px,${ny}px)`;
+      g.card.dataset.x = nx; g.card.dataset.y = ny;
     }
   });
 
-  const end = e => {
+  const pend = e => {
+    if(gesture === 'pinch') return;
     ptrs.delete(e.pointerId);
-    if(gesture==='card'){
+    if(gesture === 'card'){
       g.card.classList.remove('dragging');
-      if(g.moved){ justDragged=performance.now(); const p=POS.get(); p[g.id]={x:Math.round(+g.card.dataset.x),y:Math.round(+g.card.dataset.y)}; POS.set(p); }
-      else if(e.pointerType==='touch' && performance.now()-g.t0<350){ location.href='note.html?id='+g.id; } // тап = открыть, только палец
+      if(g.moved){
+        justDragged = performance.now();
+        const p = POS.get(); p[g.id] = {x: Math.round(+g.card.dataset.x), y: Math.round(+g.card.dataset.y)}; POS.set(p);
+      } else if(e.pointerType === 'touch' && performance.now() - g.t0 < 350){
+        location.href = 'note.html?id=' + g.id;
+      }
     }
-    if(ptrs.size<2 && gesture==='pinch') gesture='';
-    if(ptrs.size===0){ gesture=''; g=null; }
+    if(ptrs.size === 0){ gesture = ''; g = null; }
   };
-  desk.addEventListener('pointerup', end);
-  desk.addEventListener('pointercancel', end);
+  desk.addEventListener('pointerup', pend);
+  desk.addEventListener('pointercancel', pend);
 
-  // ctrl+wheel — ЖИВОЙ, для мыши (pointer его не заменяет)
+  // ---- TOUCH: только ДВА пальца (pinch). На iOS pointer для мультитач — мусор, тут e.touches железный. ----
+  desk.addEventListener('touchstart', e => {
+    if(e.touches.length === 2){
+      gesture = 'pinch';
+      g = {d0: td2(e.touches[0], e.touches[1]), z0: view.z};
+    }
+  }, {passive: true});
+
+  desk.addEventListener('touchmove', e => {
+    if(gesture !== 'pinch' || e.touches.length !== 2) return;
+    e.preventDefault();
+    const a = e.touches[0], b = e.touches[1];
+    const r = desk.getBoundingClientRect();
+    const cx = (a.clientX + b.clientX) / 2 - r.left;
+    const cy = (a.clientY + b.clientY) / 2 - r.top;
+    const d = td2(a, b);
+    const nz = Math.min(2, Math.max(0.4, g.z0 * (d / g.d0)));
+    const ratio = nz / view.z;
+    view.x = cx - (cx - view.x) * ratio;
+    view.y = cy - (cy - view.y) * ratio;
+    view.z = nz;
+    applyView();
+  }, {passive: false});
+
+  desk.addEventListener('touchend', e => {
+    if(gesture === 'pinch' && e.touches.length < 2){ gesture = ''; g = null; }
+  }, {passive: true});
+
+  // ---- ctrl+wheel живёт для мыши, pointer его не заменяет ----
   desk.addEventListener('wheel', e => {
     if(!e.ctrlKey) return; e.preventDefault();
-    const r=desk.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
-    const nz=Math.min(2,Math.max(0.4, view.z*(e.deltaY<0?1.1:0.9)));
-    view.x=px-(px-view.x)*(nz/view.z); view.y=py-(py-view.y)*(nz/view.z); view.z=nz; applyView();
-  }, {passive:false});
+    const r = desk.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+    const nz = Math.min(2, Math.max(0.4, view.z * (e.deltaY < 0 ? 1.1 : 0.9)));
+    const ratio = nz / view.z;
+    view.x = px - (px - view.x) * ratio;
+    view.y = py - (py - view.y) * ratio;
+    view.z = nz; applyView();
+  }, {passive: false});
   desk.addEventListener('auxclick', e => e.preventDefault());
 }
 /* ===== рендер ===== */
