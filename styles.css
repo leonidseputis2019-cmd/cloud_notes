@@ -571,6 +571,5 @@ button.add-more {
   .plan header { font-size: 20px; }
   .progress { height: 12px; }
 }
-.desk.viewport { overflow: hidden; }
-/* ===== TOUCH: стол едет сам, браузер отвали (конец файла, перебивает visible из каши) ===== */
 .desk.viewport { overflow: hidden; touch-action: none; }
+.desk.viewport .canvas, .desk.viewport .card { touch-action: none; }
