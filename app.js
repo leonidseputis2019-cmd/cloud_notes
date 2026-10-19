@@ -256,8 +256,12 @@ function initCanvas(){
     if(gesture==='pinch' && ptrs.size>=2){
       const [a,b]=[...ptrs.values()], r=desk.getBoundingClientRect();
       const cx=(a.x+b.x)/2-r.left, cy=(a.y+b.y)/2-r.top;
-      const nz=Math.min(2,Math.max(0.4, g.z0*(d2(a,b)/g.d0)));
-      view.x=cx-(cx-view.x)*(nz/view.z); view.y=cy-(cy-view.y)*(nz/view.z); view.z=nz; applyView(); return;
+     const nz = Math.min(2, Math.max(0.4, view.z * (e.deltaY < 0 ? 1.1 : 0.9)));
+const ratio = nz / view.z;
+view.x = px - (px - view.x) * ratio;
+view.y = py - (py - view.y) * ratio;
+view.z = nz;
+applyView();
     }
     if(gesture==='pan' && ptrs.size===1){ view.x=g.ox+(e.clientX-g.sx); view.y=g.oy+(e.clientY-g.sy); applyView(); return; }
     if(gesture==='card' && ptrs.size===1){
