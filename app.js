@@ -711,15 +711,25 @@ generateCaptcha();
 
 /* ===== auth ===== */
 const lf = $('#login-form');
-if(lf) lf.addEventListener('submit', async e => {
+if (lf) lf.addEventListener('submit', async e => {
   e.preventDefault();
   const em = lf.email.value.trim(), ps = lf.pass.value;
-  const bad = () => { lf.email.classList.add('err'); lf.pass.classList.add('err'); lf.querySelector('.err-msg').hidden = false; };
-  if(!em || !ps) return bad();
-  const lb = lf.querySelector('.btn'); busy(lb, true, ' входим...');
-  try{
+  const errEl = lf.querySelector('.err-msg');
+  const bad = m => {
+    lf.email.classList.add('err');
+    lf.pass.classList.add('err');
+    if (errEl) { errEl.textContent = m; errEl.hidden = false; }
+  };
+  if (!em || !ps) return bad('заполните оба поля');
+  const lb = lf.querySelector('.btn'); busy(lb, true, ' ⏳ входим... ');
+  try {
     const { error } = await SB.auth.signInWithPassword({ email: em, password: ps });
-    if(error) return bad();
+    if (error) {
+      const msg = String(error.message || '');
+      if (/confirm/i.test(msg)) return bad('почта не подтверждена — откройте письмо и нажмите ссылку, потом вернитесь и введите пароль');
+      if (/rate limit|too many/i.test(msg)) return bad('слишком много попыток, подождите минуту');
+      return bad(msg || 'неверный email или пароль');
+    }
     clearOpen(em); location.href = 'desk.html';
   } finally { busy(lb, false); }
 });
