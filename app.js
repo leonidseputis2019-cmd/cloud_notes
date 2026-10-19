@@ -506,9 +506,10 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('dblclick', e => {
-  if(performance.now() - justDragged < 400) return;
-  const card = e.target.closest('.card');
-  if(card && card.dataset.id) location.href = 'note.html?id=' + card.dataset.id;
+  if (performance.now() - justDragged < 400) return;
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const card = under ? under.closest('.card') : null;
+  if (card && card.dataset.id) location.href = 'note.html?id=' + card.dataset.id;
 });
 
 /* ===== страница папки ===== */
