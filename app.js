@@ -239,20 +239,24 @@ function initCanvas(){
   const td2 = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
   // ---- POINTER: только ОДИН палец (pan / drag / tap). Во время pinch молчим. ----
-  desk.addEventListener('pointerdown', e => {
-    if(gesture === 'pinch') return;
-    ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
-    try{ desk.setPointerCapture(e.pointerId); }catch(_){}
-    if(ptrs.size > 1) return;
-    const card = e.target.closest('.card');
-    if(card && card.dataset.id && mode === 'cursor'){
-      gesture = 'card';
-      g = {id: +card.dataset.id, card, p0:{x:+card.dataset.x||0, y:+card.dataset.y||0}, sx:e.clientX, sy:e.clientY, t0:performance.now(), moved:false};
-    } else if(!card){
-      gesture = 'pan';
-      g = {sx:e.clientX, sy:e.clientY, ox:view.x, oy:view.y};
-    } else gesture = '';
-  });
+ desk.addEventListener('pointerdown', e => {
+  if(gesture === 'pinch') return;
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try{ desk.setPointerCapture(e.pointerId); }catch(_){}
+  if(ptrs.size > 1) return;
+  const card = e.target.closest('.card');
+  if(card && card.dataset.id && mode === 'cursor'){
+    gesture = 'card';
+    g = { id: +card.dataset.id, card, p0:{ x: +card.dataset.x || 0, y: +card.dataset.y || 0 }, sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: false };
+  } else if(card && card.dataset.id && mode === 'rename'){
+    const it = Store.find(+card.dataset.id);
+    openModal({ id: +card.dataset.id, value: it ? it.name : '' });
+    gesture = '';
+  } else if(!card){
+    gesture = 'pan';
+    g = { sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y };
+  } else gesture = '';
+});
 
   desk.addEventListener('pointermove', e => {
     if(gesture === 'pinch') return;
@@ -435,27 +439,34 @@ function initSearch(){
 function openModal(o = {}){
   const m = $('#modal');
   if(!m){ console.error('нет #modal'); return; }
+  m.dataset.renameId = o.id || '';
   $('#new-name').value = o.value || '';
   $('#new-name').classList.remove('err');
   m.hidden = false; $('#new-name').focus();
 }
-
 const mok = $('#new-ok');
 if(mok) mok.addEventListener('click', async () => {
   const inp = $('#new-name'); const name = inp.value.trim();
   if(!name){ inp.classList.add('err'); return; }
+  const m = $('#modal');
+  const rid = m ? m.dataset.renameId : '';
+  m.hidden = true;
+  m.dataset.renameId = '';
+  if(rid){
+    const it = Store.find(+rid);
+    if(it){ it.name = name; await Store.save(it); }
+    applyFilter(currentQ());
+    return;
+  }
   const id = Date.now();
   const it = { id, name, text: '', pin: false, files: [] };
   Store.cache.push(it);
   OPEN.add(id); ACTIVE.set(id);
-  $('#modal').hidden = true;
   await Store.save(it);
   location.href = 'note.html?id=' + id;
 });
-
 const modal = $('#modal');
-if(modal) modal.addEventListener('mousedown', e => { if(e.target === modal) modal.hidden = true; });
-
+if(modal) modal.addEventListener('mousedown', e => { if(e.target === modal){ modal.hidden = true; modal.dataset.renameId = ''; } });
 /* ===== стол ===== */
 let mode = '';
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
@@ -506,12 +517,12 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('dblclick', e => {
+  if(mode === 'rename') return;
   if (performance.now() - justDragged < 400) return;
   const under = document.elementFromPoint(e.clientX, e.clientY);
   const card = under ? under.closest('.card') : null;
   if (card && card.dataset.id) location.href = 'note.html?id=' + card.dataset.id;
 });
-
 /* ===== страница папки ===== */
 async function notePage(){
   const sh = $('#sheet'); if(!sh) return;
