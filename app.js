@@ -677,7 +677,10 @@ function storagePage(){
     const bp = b.dataset.plan;
     b.classList.toggle('active-plan', bp === p);
     b.textContent = bp === p ? 'текущий тариф' : (bp === 'basic' ? '0 руб/мес' : '500 руб/мес');
-    b.onclick = () => { DB.setPlan(em, bp); storagePage(); };
+   b.onclick = () => {
+  if (bp === 'pro') { info('Функция временно недоступна. Пользуйтесь базовым тарифом...'); return; }
+  DB.setPlan(em, bp); storagePage();
+};
   });
 }
 
