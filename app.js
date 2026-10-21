@@ -766,10 +766,12 @@ if(rf) rf.addEventListener('submit', async e => {
   busy(rb, true, ' создаём...');
   
   try {
-    const { data, error } = await SB.auth.signUp({ email: em, password: p1 });
-    
-    if(error) return bad(error.message);
-
+    const { data, error } = await SB.auth.signUp({
+  email: em,
+  password: p1,
+  options: { emailRedirectTo: 'https://leonidseputis2019-cmd.github.io/cloud_notes/index.html' }
+});
+if (error) return bad(error.message);
     // --- 2. ПРОВЕРКА НА ПОДТВЕРЖДЕНИЕ EMAIL ---
         if (!data.session) {
       err.innerHTML =
