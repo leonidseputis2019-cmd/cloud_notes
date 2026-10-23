@@ -896,5 +896,9 @@ const OB = {
     this.dim = this.ring = this.bub = null;
   }
 };
+const ab = $('#about');
+if(ab) ab.addEventListener('click', e => { e.preventDefault(); info('Облачные заметки — учебный дипломный проект: холст папок на GitHub Pages + Supabase (Auth, Postgres, Storage). Данные изолированы по владельцу, лимиты держит сервер, холст — собственный жестовый слой.'); });
+const rp = $('#replay-onboard');
+if(rp) rp.addEventListener('click', e => { e.preventDefault(); if(typeof OB !== 'undefined') OB.show(); });
 // сброс для защиты: localStorage.removeItem('cn_onboarded_' + DB.session)
 // TODO кнопка «повторить обучение» в settings.html — файл в базе тень, вставлю по скрину зоны кнопки.
