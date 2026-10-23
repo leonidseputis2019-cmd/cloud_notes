@@ -704,11 +704,11 @@ function storagePage(){
  // if(!$('#theme-btn')){
   //  bar.insertAdjacentHTML('beforeend',
    //   `<button class="iconbtn" id="theme-btn" title="темы"><img src="icons/palette.png" alt=""></button><div id="theme-pop" hidden>${THEMES.map(t=>`<button class="swatch" data-theme="${t.id}" style="background:${t.color}"></button>`).join('')}</div>`);
- }
-  const btn = $('#theme-btn'), pop = $('#theme-pop');
-  if(btn) btn.addEventListener('click', e => { e.stopPropagation(); pop.hidden = !pop.hidden; apply(cur()); });
-  if(pop) pop.addEventListener('click', e => { const s = e.target.closest('.swatch'); if(s) apply(s.dataset.theme); });
-  document.addEventListener('click', e => { if(!e.target.closest('#theme-pop')&&!e.target.closest('#theme-btn')) pop.hidden = true; });
+// }
+ // const btn = $('#theme-btn'), pop = $('#theme-pop');
+ // if(btn) btn.addEventListener('click', e => { e.stopPropagation(); pop.hidden = !pop.hidden; apply(cur()); });
+  //if(pop) pop.addEventListener('click', e => { const s = e.target.closest('.swatch'); if(s) apply(s.dataset.theme); });
+//  document.addEventListener('click', e => { if(!e.target.closest('#theme-pop')&&!e.target.closest('#theme-btn')) pop.hidden = true; });
 })();
 
 /* ===== рандомная капча ===== */
