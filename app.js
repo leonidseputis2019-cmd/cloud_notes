@@ -701,7 +701,7 @@ function storagePage(){
   apply(cur());
   const bar = document.querySelector('.topbar');
   if(!bar) return;
-  if(!$('#theme-btn')){
+ // if(!$('#theme-btn')){
   //  bar.insertAdjacentHTML('beforeend',
    //   `<button class="iconbtn" id="theme-btn" title="темы"><img src="icons/palette.png" alt=""></button><div id="theme-pop" hidden>${THEMES.map(t=>`<button class="swatch" data-theme="${t.id}" style="background:${t.color}"></button>`).join('')}</div>`);
  }
