@@ -573,3 +573,12 @@ button.add-more {
 }
 .desk.viewport { overflow: hidden; touch-action: none; }
 .desk.viewport .canvas, .desk.viewport .card { touch-action: none; }
+/* ===== ОНБОРДИНГ ===== */
+#ob-dim { position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,.72); }
+#ob-ring { position: fixed; z-index: 100; border: 2px solid #fff; border-radius: 12px; pointer-events: none; display: none; }
+#ob-bubble { position: fixed; z-index: 101; max-width: 320px; background: var(--surface,#fff); color: var(--ink,#222); border-radius: 14px; padding: 16px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.4); font: 400 15px/1.5 system-ui, sans-serif; }
+#ob-bubble p { margin: 0 0 12px; }
+#ob-row { display: flex; gap: 8px; justify-content: flex-end; }
+#ob-skip, #ob-next { border: 0; border-radius: 10px; padding: 8px 14px; font: 600 14px system-ui; cursor: pointer; }
+#ob-skip { background: transparent; color: inherit; opacity: .7; }
+#ob-next { background: #7c5cff; color: #fff; }
