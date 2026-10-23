@@ -830,7 +830,7 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   initCanvas();
   const d = $('#desk');
   if(d) initSearch();
- if(OB.need()) setTimeout(() => OB.show(), 400);
+if(OB.need() || localStorage.getItem('cn_tour')){ localStorage.removeItem('cn_tour'); setTimeout(() => OB.show(), 400); }
 })();
 /* ===== ОНБОРДИНГ ===== */
 function obEl(tag, id){ const n = document.createElement(tag); if(id) n.id = id.slice(1); return n; }
@@ -840,13 +840,16 @@ function obHole(r, pad){
 }
 const OB = {
   steps: [
-    { text: '👋 Добро пожаловать! Это твой стол — тут живут папки с заметками и файлами.' },
-    { sel: '[data-mode="cursor"]', text: 'Стрелка — двигать папки по столу. Нажми её.' },
-    { sel: '[data-mode="rename"]', text: 'Карандаш — переименовать папку одним кликом. Нажми.' },
+    { text: 'Добро пожаловать! Это твой стол — тут живут папки с заметками и файлами.' },
+    { sel: '[data-mode="cursor"]', live: true, text: 'Стрелка — двигать папки по столу. Нажми её.' },
+    { sel: '[data-mode="rename"]', live: true, text: 'Карандаш — переименовать папку одним кликом. Нажми.' },
     { text: 'Папку открываешь тапом (телефон) или двойным кликом (ПК).' },
-    { text: 'Кнопка + внизу создаёт новую папку.' },
-    { text: 'Поиск сверху находит папки по имени.' },
-    { text: 'Палитра справа меняет тему, шестерёнка — настройки и тариф.' },
+    { sel: ['.tbtn[title="создать папку"]', '.tbtn'], text: 'Плюс внизу создаёт новую папку. Попробуй после обучения.' },
+    { sel: ['.tab', '#tabs'], text: 'Вкладки сверху — открытые папки: клик открыть, – скрыть, × удалить.' },
+    { sel: '.search input', text: 'Поиск сверху находит папки по имени.' },
+    { sel: '#theme-btn', text: 'Палитра справа меняет тему оформления.' },
+    { sel: ['a.iconbtn[href="settings.html"]', '.iconbtn'], text: 'Шестерёнка — настройки, тариф и выход.' },
+    { sel: '#view-ind', text: 'Уголок справа показывает масштаб; два пальца или Ctrl+колесо — зум.' },
     { text: 'Готово! Забудешь — обучение есть в настройках.' }
   ],
   i: 0, dim: null, ring: null, bub: null, active: false,
@@ -863,22 +866,29 @@ const OB = {
   },
   show(){ this.build(); this.i = 0; this.active = true; this.place(); },
   resetMode(){ mode = ''; document.querySelectorAll('[data-mode]').forEach(x => x.classList.remove('active')); document.body.classList.remove('rename-mode','drag-mode'); },
+  target(s){
+    if(!s.sel) return null;
+    const list = Array.isArray(s.sel) ? s.sel : [s.sel];
+    for(const q of list){ const t = document.querySelector(q); if(t) return t; }
+    return null;
+  },
   next(){
     const prev = this.steps[this.i];
-    if(prev && prev.sel) this.resetMode();
+    if(prev && prev.live) this.resetMode();
     this.i++;
     if(this.i >= this.steps.length){ this.finish(); return; }
     this.place();
   },
   place(){
     const s = this.steps[this.i];
-    this.bub.querySelector('#ob-txt').textContent = s.text;                       // текст ПЕРВЫМ, иначе мера пузыря stale
+    this.bub.querySelector('#ob-txt').textContent = s.text;
     this.bub.querySelector('#ob-next').textContent = (this.i === this.steps.length - 1) ? 'начать' : 'далее';
-    const t = s.sel ? document.querySelector(s.sel) : null;
+    const t = this.target(s);
     if(t){
-      const r = t.getBoundingClientRect(), pad = 8, br = this.bub.getBoundingClientRect();
-      this.dim.style.clipPath = obHole(r, pad);
+      const r = t.getBoundingClientRect(), pad = 8;
+      this.dim.style.clipPath = s.live ? obHole(r, pad) : 'none';
       Object.assign(this.ring.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: (r.width + pad*2) + 'px', height: (r.height + pad*2) + 'px', display: 'block' });
+      const br = this.bub.getBoundingClientRect();
       let bx = r.left + r.width/2 - br.width/2, by = r.bottom + pad + 10;
       if(by + br.height > innerHeight - 8) by = r.top - pad - 10 - br.height;
       bx = Math.max(8, Math.min(bx, innerWidth - br.width - 8)); by = Math.max(8, by);
@@ -899,6 +909,6 @@ const OB = {
 const ab = $('#about');
 if(ab) ab.addEventListener('click', e => { e.preventDefault(); info('Облачные заметки — учебный дипломный проект: холст папок на GitHub Pages + Supabase (Auth, Postgres, Storage). Данные изолированы по владельцу, лимиты держит сервер, холст — собственный жестовый слой.'); });
 const rp = $('#replay-onboard');
-if(rp) rp.addEventListener('click', e => { e.preventDefault(); if(typeof OB !== 'undefined') OB.show(); });
+if(rp) rp.addEventListener('click', e => { e.preventDefault(); localStorage.setItem('cn_tour', '1'); location.href = 'desk.html'; });
 // сброс для защиты: localStorage.removeItem('cn_onboarded_' + DB.session)
 // TODO кнопка «повторить обучение» в settings.html — файл в базе тень, вставлю по скрину зоны кнопки.
