@@ -830,7 +830,7 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   initCanvas();
   const d = $('#desk');
   if(d) initSearch();
-  (async function(){ ... })()
+ if(OB.need()) setTimeout(() => OB.show(), 400);
 })();
 /* ===== ОНБОРДИНГ ===== */
 function obEl(tag, id){ const n = document.createElement(tag); if(id) n.id = id.slice(1); return n; }
