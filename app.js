@@ -831,3 +831,68 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   const d = $('#desk');
   if(d) initSearch();
 })();
+/* ===== ОНБОРДИНГ ===== */
+function obEl(tag, id){ const n = document.createElement(tag); if(id) n.id = id.slice(1); return n; }
+function obHole(r, pad){
+  const x1 = r.left - pad, y1 = r.top - pad, x2 = r.right + pad, y2 = r.bottom + pad, W = innerWidth, H = innerHeight;
+  return `polygon(0 0,${W}px 0,${W}px ${H}px,0 ${H}px,0 0,${x1}px ${y1}px,${x1}px ${y2}px,${x2}px ${y2}px,${x2}px ${y1}px,${x1}px ${y1}px)`;
+}
+const OB = {
+  steps: [
+    { sel: '[data-mode="cursor"]', text: 'Стрелка — двигать папки по столу. Нажми её.' },
+    { sel: '[data-mode="rename"]', text: 'Карандаш — переименовать папку одним кликом. Нажми.' },
+    { text: 'Папку открываешь тапом (телефон) или двойным кликом (ПК).' },
+    { text: 'Кнопка + внизу создаёт новую папку.' },
+    { text: 'Поиск сверху находит папки по имени.' },
+    { text: 'Палитра справа меняет тему, шестерёнка — настройки и тариф.' },
+    { text: 'Готово! Забудешь — обучение есть в настройках.' }
+  ],
+  i: 0, dim: null, ring: null, bub: null, active: false,
+  flag(){ return 'cn_onboarded_' + (DB.session || ''); },
+  need(){ return !!DB.session && !localStorage.getItem(this.flag()); },
+  build(){
+    if(this.dim) return;
+    this.dim = obEl('div','#ob-dim'); this.ring = obEl('div','#ob-ring'); this.bub = obEl('div','#ob-bubble');
+    this.bub.innerHTML = '<p id="ob-txt"></p><div id="ob-row"><button id="ob-skip">пропустить</button><button id="ob-next">далее</button></div>';
+    document.body.append(this.dim, this.ring, this.bub);
+    this.bub.querySelector('#ob-skip').onclick = () => this.finish();
+    this.bub.querySelector('#ob-next').onclick = () => this.next();
+    addEventListener('resize', () => { if(this.active) this.place(); });
+  },
+  show(){ this.build(); this.i = 0; this.active = true; this.place(); },
+  resetMode(){ mode = ''; document.querySelectorAll('[data-mode]').forEach(x => x.classList.remove('active')); document.body.classList.remove('rename-mode','drag-mode'); },
+  next(){
+    const prev = this.steps[this.i];
+    if(prev && prev.sel) this.resetMode();
+    this.i++;
+    if(this.i >= this.steps.length){ this.finish(); return; }
+    this.place();
+  },
+  place(){
+    const s = this.steps[this.i];
+    this.bub.querySelector('#ob-txt').textContent = s.text;                       // текст ПЕРВЫМ, иначе мера пузыря stale
+    this.bub.querySelector('#ob-next').textContent = (this.i === this.steps.length - 1) ? 'начать' : 'далее';
+    const t = s.sel ? document.querySelector(s.sel) : null;
+    if(t){
+      const r = t.getBoundingClientRect(), pad = 8, br = this.bub.getBoundingClientRect();
+      this.dim.style.clipPath = obHole(r, pad);
+      Object.assign(this.ring.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: (r.width + pad*2) + 'px', height: (r.height + pad*2) + 'px', display: 'block' });
+      let bx = r.left + r.width/2 - br.width/2, by = r.bottom + pad + 10;
+      if(by + br.height > innerHeight - 8) by = r.top - pad - 10 - br.height;
+      bx = Math.max(8, Math.min(bx, innerWidth - br.width - 8)); by = Math.max(8, by);
+      Object.assign(this.bub.style, { left: bx + 'px', top: by + 'px' });
+    } else {
+      this.dim.style.clipPath = 'none'; this.ring.style.display = 'none';
+      const br = this.bub.getBoundingClientRect();
+      Object.assign(this.bub.style, { left: (innerWidth - br.width)/2 + 'px', top: (innerHeight - br.height)/2 + 'px' });
+    }
+  },
+  finish(){
+    this.active = false;
+    localStorage.setItem(this.flag(), '1');
+    [this.dim, this.ring, this.bub].forEach(n => n && n.remove());
+    this.dim = this.ring = this.bub = null;
+  }
+};
+// сброс для защиты: localStorage.removeItem('cn_onboarded_' + DB.session)
+// TODO кнопка «повторить обучение» в settings.html — файл в базе тень, вставлю по скрину зоны кнопки.
