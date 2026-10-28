@@ -582,3 +582,34 @@ button.add-more {
 #ob-skip, #ob-next { border: 0; border-radius: 10px; padding: 8px 14px; font: 600 14px system-ui; cursor: pointer; }
 #ob-skip { background: transparent; color: inherit; opacity: .7; }
 #ob-next { background: #7c5cff; color: #fff; }
+/* ===== ХОЛСТ ВНУТРИ ПАПКИ (v2-рез) ===== */
+#note-root{ position:fixed; inset:0; z-index:40; background:var(--bg-grad); display:flex; flex-direction:column; }
+.n-top{ height:64px; flex:none; display:flex; align-items:center; gap:12px; padding:0 14px; background:var(--glass); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+.n-back{ width:42px; height:42px; border-radius:12px; background:var(--surface-tint); border:1px solid var(--line); display:grid; place-items:center; font-size:20px; text-decoration:none; color:var(--ink); flex:none; }
+.n-name{ font:600 17px 'Inter'; color:var(--ink); max-width:30%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:none; }
+.n-search{ flex:1; min-width:0; height:40px; background:var(--search-bg); border:1px solid var(--line); border-radius:20px; display:flex; align-items:center; padding:0 6px 0 12px; }
+.n-search input{ flex:1; height:28px; border:none; border-radius:14px; background:var(--surface); padding:0 12px; font:italic 300 14px 'Inter'; color:var(--ink); }
+#note-desk{ position:relative; flex:1; overflow:hidden; touch-action:none; }
+#note-canvas{ position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+#note-links{ position:absolute; left:0; top:0; width:8000px; height:8000px; overflow:visible; pointer-events:none; z-index:0; }
+#note-links line{ vector-effect:non-scaling-stroke; }
+#note-links .nhit{ pointer-events:stroke; cursor:pointer; }
+#note-ind{ position:fixed; right:12px; bottom:78px; z-index:45; padding:6px 10px; border-radius:10px; background:var(--glass-strong); border:1px solid var(--line); font:400 12px 'Inter'; color:var(--ink); pointer-events:none; }
+.ncard{ position:absolute; left:0; top:0; width:180px; background:var(--glass-strong); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-soft); overflow:hidden; cursor:default; user-select:none; z-index:1; }
+.ncard header{ padding:8px 10px; font:600 13px 'Inter'; color:#fff; background:linear-gradient(135deg,var(--accent1),var(--accent2)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ncbody{ padding:10px; min-height:84px; }
+.nprev{ font:400 13px/1.4 'Inter'; color:var(--ink); white-space:pre-wrap; word-break:break-word; max-height:84px; overflow:hidden; }
+.nprev .ph{ color:#9a92a4; }
+.nfp{ display:flex; flex-direction:column; gap:6px; align-items:center; justify-content:center; min-height:84px; color:var(--ink); }
+.nimg{ width:64px; height:64px; object-fit:contain; border-radius:8px; background:var(--surface-tint); }
+.ntag{ background:var(--surface-tint); border-radius:6px; padding:2px 8px; font:600 11px 'Inter'; text-transform:uppercase; }
+.nfsize{ font-size:11px; opacity:.6; }
+#note-desk.n-drag .ncard{ cursor:grab; } #note-desk.n-rename .ncard{ cursor:text; } #note-desk.n-link .ncard{ cursor:crosshair; }
+.ncard.ndrag{ cursor:grabbing; opacity:.9; z-index:3; }
+.ncard.nsrc{ outline:3px solid var(--accent1); outline-offset:2px; }
+.n-bar{ position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:46; display:flex; gap:8px; background:var(--glass-strong); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:var(--shadow-lift); }
+.ntbtn{ width:44px; height:44px; border-radius:10px; background:var(--tbtn-bg); border:1px solid var(--line); cursor:pointer; font-size:20px; display:grid; place-items:center; }
+.ntbtn.active{ background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:#fff; }
+.n-crow{ display:flex; align-items:center; gap:10px; margin:4px 0 12px; font:400 14px 'Inter'; color:var(--ink); }
+.n-crow input[type=color]{ width:42px; height:30px; border:0; background:none; cursor:pointer; padding:0; }
+#ncform .auth-row, #nlform .auth-row{ justify-content:flex-end; }
