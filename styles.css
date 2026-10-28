@@ -613,3 +613,15 @@ button.add-more {
 .n-crow{ display:flex; align-items:center; gap:10px; margin:4px 0 12px; font:400 14px 'Inter'; color:var(--ink); }
 .n-crow input[type=color]{ width:42px; height:30px; border:0; background:none; cursor:pointer; padding:0; }
 #ncform .auth-row, #nlform .auth-row{ justify-content:flex-end; }
+/* ===== ГЛАВНАЯ = СПИСОК (фронт 2) ===== */
+.l-list{ width:min(760px,92vw); margin:8px auto 0; padding:0 4px; display:flex; flex-direction:column; gap:14px; }
+.lrow{ display:flex; gap:16px; align-items:center; background:var(--glass-strong); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; cursor:pointer; box-shadow:var(--shadow-soft); transition:transform .15s, box-shadow .15s; }
+.lrow:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lift); }
+body.rename-mode .lrow{ cursor:text; }
+.lrow-photo{ width:64px; height:64px; border-radius:50%; background:var(--surface-tint); border:1px solid var(--line); display:grid; place-items:center; flex:none; overflow:hidden; }
+.lrow-photo img{ width:34px; opacity:.7; }
+.lrow-main{ min-width:0; flex:1; }
+.lrow-name{ font:600 18px 'Inter'; color:var(--ink); border-bottom:1px solid var(--line); padding-bottom:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lrow-desc{ margin-top:6px; font:400 14px 'Inter'; color:var(--ink); opacity:.65; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+textarea.field{ height:auto; min-height:120px; padding:14px 18px; resize:vertical; font:400 16px/1.5 'Inter'; }
+#l-del-row{ justify-content:flex-start; }
