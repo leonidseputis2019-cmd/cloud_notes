@@ -951,6 +951,89 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   finally { busy(lo, false); }
 }));
 
+/* ===== ГЛАВНАЯ = СПИСОК (фронт 2, префикс L, note-рез n* не тронут) ===== */
+let Lmode = '', Lq = '';
+function LcanAddFolder(){
+  const L = LIMITS[DB.plan(DB.session)];
+  if(Store.cache.length >= L.folders){ info(`На тарифе «${DB.plan(DB.session)==='basic'?'Базовый':'PRO'}» не более ${L.folders} папок.`); return false; }
+  return true;
+}
+function LrowHTML(it){
+  const d = (it.text||'').trim();
+  return `<div class="lrow" data-id="${it.id}">
+    <div class="lrow-photo"><img src="icons/${ICON.folder}" alt=""></div>
+    <div class="lrow-main">
+      <div class="lrow-name">${esc(it.name)}</div>
+      ${d ? `<div class="lrow-desc">${esc(d.length>90?d.slice(0,90)+'…':d)}</div>` : ''}
+    </div>
+  </div>`;
+}
+function LrenderList(){
+  const box = $('#l-list'); if(!box) return;
+  const q = Lq.toLowerCase().trim();
+  const items = q ? Store.cache.filter(it => (it.name+' '+(it.text||'')).toLowerCase().includes(q)) : Store.cache;
+  box.innerHTML = items.length ? items.map(LrowHTML).join('') : `<div class="empty"><img src="icons/${q?'sad':'folder-x'}.png" alt=""><p>${q?'Ничего не найдено...':'Тут пока пусто — нажмите +'}</p></div>`;
+}
+function LopenFolder(o){
+  $('#l-title').textContent = o.id ? 'Папка' : 'Новая папка';
+  $('#l-name').value = o.name || '';
+  $('#l-desc').value = o.text || '';
+  $('#l-name').classList.remove('err');
+  $('#l-del').hidden = !o.id;
+  $('#lform').dataset.edit = o.id || '';
+  $('#lform').hidden = false; $('#l-name').focus();
+}
+function Lboot(){
+  // прячем живой холст папок, оставляем живой topbar/поиск/шестерёнку
+  ['#desk','#tabs','#modal','#view-ind','#desk-empty'].forEach(s=>{ const e=$(s); if(e) e.style.display='none'; });
+  // переиспользуем живой .toolbar: вычищаем мёртвые [data-mode], кладём свои
+  const tb = document.querySelector('.toolbar');
+  if(tb){ tb.innerHTML = `<button class="tbtn" id="l-plus" title="создать папку"><img src="icons/plus.png" alt="+"></button><button class="tbtn" id="l-pencil" title="переименовать папку"><img src="icons/rename.png" alt="✎"></button>`; }
+  // список
+  if(!$('#l-list')) document.body.insertAdjacentHTML('beforeend','<main class="l-list" id="l-list"></main>');
+  // модалка папки (имя + описание + удалить), на живых классах .modal/.field/.btn
+  if(!$('#lform')) document.body.insertAdjacentHTML('beforeend',
+    `<div class="modal" id="lform" hidden><div class="modal-card">
+      <h3 id="l-title">Новая папка</h3>
+      <input class="field" id="l-name" placeholder="название папки">
+      <textarea class="field" id="l-desc" placeholder="описание / заметка"></textarea>
+      <div class="auth-row" id="l-del-row"><button class="btn btn-ghost" id="l-del">удалить папку</button></div>
+      <div class="auth-row"><button class="btn" id="l-ok">сохранить</button></div>
+    </div></div>`);
+  // поиск живой -> фильтр списка (живой initSearch не запущен, конфликтов нет)
+  const si = document.querySelector('.search input');
+  if(si){ si.value=''; si.addEventListener('input', ()=>{ Lq = si.value; LrenderList(); }); }
+  // бар
+  const lp = $('#l-plus'), lpen = $('#l-pencil');
+  if(lp) lp.addEventListener('click', ()=>{ if(LcanAddFolder()) LopenFolder({}); });
+  if(lpen) lpen.addEventListener('click', ()=>{ Lmode = Lmode==='rename'?'':'rename'; if(lpen) lpen.classList.toggle('active', Lmode==='rename'); document.body.classList.toggle('rename-mode', Lmode==='rename'); });
+  // модалка
+  if($('#l-ok')) $('#l-ok').addEventListener('click', async ()=>{
+    const name = $('#l-name').value.trim(); if(!name){ $('#l-name').classList.add('err'); return; }
+    const text = $('#l-desc').value, editId = $('#lform').dataset.edit;
+    if(editId){ const it = Store.find(+editId); if(it){ it.name=name; it.text=text; await Store.save(it); } }
+    else { const it = { id: Date.now(), name, text, pin:false, files:[] }; Store.cache.push(it); await Store.save(it); }
+    $('#lform').hidden = true; LrenderList();
+  });
+  if($('#l-del')) $('#l-del').addEventListener('click', ()=>{
+    const id = +$('#lform').dataset.edit; const it = Store.find(id); if(!it) return;
+    askConfirm(`Удалить папку «${it.name}» и все её файлы?`, async ()=>{
+      const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
+      try{ const paths=(it.files||[]).map(f=>f.path).filter(Boolean); if(paths.length) await removePaths(paths); await Store.remove(id); Store.cache=Store.cache.filter(x=>x.id!==id); $('#lform').hidden=true; LrenderList(); }
+      finally{ busy($('#confirm-ok'), false); }
+    });
+  });
+  if($('#lform')) $('#lform').addEventListener('mousedown', e=>{ if(e.target.id==='lform') $('#lform').hidden=true; });
+  // строки: карандаш -> модалка, иначе -> внутрь папки
+  $('#l-list').addEventListener('click', e=>{
+    const row = e.target.closest('.lrow'); if(!row) return;
+    const id = +row.dataset.id;
+    if(Lmode==='rename'){ const it=Store.find(id); if(it) LopenFolder({id:it.id,name:it.name,text:it.text}); return; }
+    location.href = 'note.html?id=' + id;
+  });
+  LrenderList();
+}
+
 /* ===== старт ===== */
 (async function(){
   if(typeof SB === 'undefined'){ console.error('SB не определён'); return; }
@@ -963,9 +1046,7 @@ if(typeof SB !== 'undefined') document.querySelectorAll('#logout, .logout-btn').
   if($('#sheet')){ notePage(); return; }
   accountPage();
   storagePage();
-  initCanvas();
-  const d = $('#desk');
-  if(d) initSearch();
+ if($('#desk')) Lboot();
 if(OB.need() || localStorage.getItem('cn_tour')){ localStorage.removeItem('cn_tour'); setTimeout(() => OB.show(), 400); }
 })();
 /* ===== ОНБОРДИНГ ===== */
