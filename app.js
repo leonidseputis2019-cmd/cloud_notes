@@ -523,116 +523,252 @@ document.addEventListener('dblclick', e => {
   const card = under ? under.closest('.card') : null;
   if (card && card.dataset.id) location.href = 'note.html?id=' + card.dataset.id;
 });
-/* ===== страница папки ===== */
+/* ===== ХОЛСТ ВНУТРИ ПАПКИ (v2-рез, desk не тронут) ===== */
+let nCUR = null, nmode = '', nlinkFrom = null, njustDragged = 0;
+const nview = { x: 0, y: 0, z: 1 };
+
+function napplyView(){
+  const c = $('#note-canvas'); if(!c) return;
+  c.style.transform = `translate(${nview.x}px,${nview.y}px) scale(${nview.z})`;
+  const ind = $('#note-ind'); if(ind) ind.textContent = `${Math.round(nview.z*100)}%`;
+}
+function nnormalize(it){
+  if(!it.note) it.note = { x: 40, y: 40, color: '' };
+  if(!it.links) it.links = [];
+  (it.files||[]).forEach((f,i)=>{ if(f.x==null) f.x = 300 + (i%5)*24; if(f.y==null) f.y = 60 + (i%5)*24; if(f.color==null) f.color = ''; });
+}
+function ncardObj(kind, id){
+  if(kind === 'note') return { ref: nCUR.note, isNote: true };
+  const f = (nCUR.files||[]).find(x => x.path === id);
+  return f ? { ref: f, isNote: false } : null;
+}
+function ncardHTML(kind, id, name, x, y, color, bodyHTML){
+  const st = color ? ` style="background:${color}"` : '';
+  return `<div class="ncard" data-kind="${kind}" data-id="${esc(id)}" data-x="${x}" data-y="${y}" style="transform:translate(${x}px,${y}px)">
+    <header${st}>${esc(name)}</header><div class="ncbody">${bodyHTML}</div></div>`;
+}
+async function nrender(){
+  const c = $('#note-canvas'); if(!c || !nCUR) return;
+  const q = ($('#note-q')?.value || '').toLowerCase().trim();
+  const hit = s => !q || String(s).toLowerCase().includes(q);
+  const parts = [];
+  const n = nCUR.note, txt = (nCUR.text||'').trim();
+  if(hit('заметка ' + txt)){
+    parts.push(ncardHTML('note','note','заметка', n.x, n.y, n.color,
+      `<div class="nprev">${txt ? esc(txt.length>160?txt.slice(0,160)+'…':txt) : '<span class="ph">пусто — нажми карандаш</span>'}</div>`));
+  }
+  for(const f of (nCUR.files||[])){
+    if(!hit(f.name)) continue;
+    let prev;
+    if((f.mime||'').startsWith('image/')){ const u = await fileURL(f.path); prev = u ? `<img class="nimg" src="${u}" alt="">` : `<img class="nimg" src="icons/${ICON.file}" alt="">`; }
+    else prev = `<img class="nimg" src="icons/${ICON.file}" alt=""><span class="ntag">${esc((f.mime||'файл').split('/').pop())}</span>`;
+    parts.push(ncardHTML('file', f.path, f.name, f.x||0, f.y||0, f.color||'',
+      `<div class="nfp">${prev}<span class="nfsize">${fmtSize(f.size||0)}</span></div>`));
+  }
+  c.innerHTML = parts.join('');
+  nrenderLinks();
+}
+function nedgePt(cx,cy,w,h,tx,ty){
+  let dx=tx-cx, dy=ty-cy; if(!dx && !dy) return {x:cx,y:cy};
+  const sx = dx ? (w/2)/Math.abs(dx) : Infinity, sy = dy ? (h/2)/Math.abs(dy) : Infinity, s = Math.min(sx,sy);
+  return {x:cx+dx*s, y:cy+dy*s};
+}
+function nrenderLinks(){
+  const svg = $('#note-links'); if(!svg || !nCUR) return;
+  const map = {};
+  document.querySelectorAll('#note-canvas .ncard').forEach(c=>{
+    const x=+c.dataset.x||0, y=+c.dataset.y||0;
+    map[c.dataset.id] = { cx:x+c.offsetWidth/2, cy:y+c.offsetHeight/2, w:c.offsetWidth, h:c.offsetHeight };
+  });
+  let out='';
+  (nCUR.links||[]).forEach((ln,i)=>{
+    const a=map[ln.from], b=map[ln.to]; if(!a||!b) return;
+    const p1=nedgePt(a.cx,a.cy,a.w,a.h,b.cx,b.cy), p2=nedgePt(b.cx,b.cy,b.w,b.h,a.cx,a.cy), col=ln.color||'#6b6275';
+    out += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${col}" stroke-width="2"/>`;
+    out += `<line class="nhit" data-i="${i}" x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="transparent" stroke-width="18"/>`;
+  });
+  svg.innerHTML = out;
+}
+function nsetMode(m){
+  nmode = m; nlinkFrom = null;
+  ['#nd-cursor','#nd-pencil','#nd-link'].forEach(s=>{ const b=$(s); if(b) b.classList.remove('active'); });
+  const on = { cursor:'#nd-cursor', rename:'#nd-pencil', link:'#nd-link' }[m];
+  if(on){ const b=$(on); if(b) b.classList.add('active'); }
+  const d = $('#note-desk');
+  if(d){ d.classList.toggle('n-rename', m==='rename'); d.classList.toggle('n-drag', m==='cursor'); d.classList.toggle('n-link', m==='link'); }
+  document.querySelectorAll('.nsrc').forEach(x=>x.classList.remove('nsrc'));
+}
+function ninitCanvas(){
+  const desk = $('#note-desk'); if(!desk || !$('#note-canvas')) return;
+  nview.x=0; nview.y=0; nview.z=1; napplyView();
+  const ptrs = new Map(); let gesture='', g=null;
+  const td2=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  desk.addEventListener('pointerdown', e=>{
+    if(gesture==='pinch') return;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    try{ desk.setPointerCapture(e.pointerId); }catch(_){}
+    if(ptrs.size>1) return;
+    const card = e.target.closest('.ncard');
+    if(card && nmode==='cursor'){ gesture='card'; g={card, p0:{x:+card.dataset.x||0,y:+card.dataset.y||0}, sx:e.clientX, sy:e.clientY, moved:false}; }
+    else if(!card){ gesture='pan'; g={sx:e.clientX,sy:e.clientY,ox:nview.x,oy:nview.y}; }
+    else gesture='';
+  });
+  desk.addEventListener('pointermove', e=>{
+    if(gesture==='pinch') return; if(!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(gesture==='pan' && ptrs.size===1){ nview.x=g.ox+(e.clientX-g.sx); nview.y=g.oy+(e.clientY-g.sy); napplyView(); return; }
+    if(gesture==='card' && ptrs.size===1){
+      if(!g.moved && Math.hypot(e.clientX-g.sx,e.clientY-g.sy)<8) return;
+      g.moved=true; g.card.classList.add('ndrag');
+      const nx=g.p0.x+(e.clientX-g.sx)/nview.z, ny=g.p0.y+(e.clientY-g.sy)/nview.z;
+      g.card.style.transform=`translate(${nx}px,${ny}px)`; g.card.dataset.x=nx; g.card.dataset.y=ny; nrenderLinks();
+    }
+  });
+  const pend = e=>{
+    ptrs.delete(e.pointerId);
+    if(gesture==='pinch'){ if(ptrs.size<2){gesture='';g=null;} return; }
+    if(gesture==='card'){
+      g.card.classList.remove('ndrag');
+      if(g.moved){ njustDragged=performance.now(); const o=ncardObj(g.card.dataset.kind,g.card.dataset.id); if(o){ o.ref.x=Math.round(+g.card.dataset.x); o.ref.y=Math.round(+g.card.dataset.y); saveSoon(nCUR); } }
+    }
+    if(ptrs.size===0){ gesture=''; g=null; }
+  };
+  desk.addEventListener('pointerup', pend); desk.addEventListener('pointercancel', pend);
+  desk.addEventListener('touchstart', e=>{ if(e.touches.length===2){ gesture='pinch'; g={d0:td2(e.touches[0],e.touches[1]),z0:nview.z}; } }, {passive:true});
+  desk.addEventListener('touchmove', e=>{
+    if(gesture!=='pinch'||e.touches.length!==2) return; e.preventDefault();
+    const a=e.touches[0],b=e.touches[1],r=desk.getBoundingClientRect();
+    const cx=(a.clientX+b.clientX)/2-r.left, cy=(a.clientY+b.clientY)/2-r.top, d=td2(a,b);
+    const nz=Math.min(2,Math.max(0.4,g.z0*(d/g.d0))), ratio=nz/nview.z;
+    nview.x=cx-(cx-nview.x)*ratio; nview.y=cy-(cy-nview.y)*ratio; nview.z=nz; napplyView();
+  }, {passive:false});
+  desk.addEventListener('touchend', e=>{ if(gesture==='pinch'&&e.touches.length<2){gesture='';g=null;} }, {passive:true});
+  desk.addEventListener('wheel', e=>{
+    if(!e.ctrlKey) return; e.preventDefault();
+    const r=desk.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+    const nz=Math.min(2,Math.max(0.4,nview.z*(e.deltaY<0?1.1:0.9))), ratio=nz/nview.z;
+    nview.x=px-(px-nview.x)*ratio; nview.y=py-(py-nview.y)*ratio; nview.z=nz; napplyView();
+  }, {passive:false});
+  desk.addEventListener('auxclick', e=>e.preventDefault());
+}
+function nopenCard(kind, id){
+  const o = ncardObj(kind,id); if(!o) return;
+  $('#nc-title').textContent = o.isNote ? 'Заметка папки' : 'Файл';
+  $('#nc-name-wrap').hidden = o.isNote; $('#nc-text-wrap').hidden = !o.isNote; $('#nc-acts').hidden = o.isNote;
+  $('#nc-name').value = o.isNote ? '' : (o.ref.name||'');
+  $('#nc-text').value = o.isNote ? (nCUR.text||'') : '';
+  $('#nc-color').value = o.ref.color || '#8f6bab';
+  $('#ncform').dataset.kind = kind; $('#ncform').dataset.id = id; $('#ncform').hidden = false;
+}
+function nopenLink(i){ const ln=(nCUR.links||[])[i]; if(!ln) return; $('#nl-color').value = ln.color||'#6b6275'; $('#nlform').dataset.i=i; $('#nlform').hidden=false; }
+function ntapCard(card){
+  if(nmode==='link'){
+    const id = card.dataset.id;
+    if(!nlinkFrom){ nlinkFrom=id; card.classList.add('nsrc'); return; }
+    if(nlinkFrom===id){ card.classList.remove('nsrc'); nlinkFrom=null; return; }
+    const dup=(nCUR.links||[]).some(l=>(l.from===nlinkFrom&&l.to===id)||(l.from===id&&l.to===nlinkFrom));
+    if(!dup){ nCUR.links.push({from:nlinkFrom,to:id,color:''}); saveSoon(nCUR); }
+    document.querySelectorAll('.nsrc').forEach(x=>x.classList.remove('nsrc')); nlinkFrom=null; nrenderLinks(); return;
+  }
+  if(nmode==='rename'){ nopenCard(card.dataset.kind, card.dataset.id); return; }
+  if(card.dataset.kind==='note'){ nopenCard('note','note'); return; }
+  (async()=>{ const u=await fileURL(card.dataset.id); if(u) window.open(u,'_blank'); else info('Не удалось открыть файл.'); })();
+}
+
 async function notePage(){
-  const sh = $('#sheet'); if(!sh) return;
+  const sh = $('#sheet');
   const id = +new URLSearchParams(location.search).get('id');
   const it = Store.find(id);
   if(!it) return location.replace('desk.html');
-
-  const ta = `<textarea class="note-text" id="note-text" placeholder="заметка...">${esc(it.text || '')}</textarea><p class="save-hint">сохраняется автоматически</p>`;
-
-  let fileList = '';
-  if(!it.files || !it.files.length){
-    fileList = `<div class="file-empty"><button class="btn big-plus" id="add-file-btn">+</button><p>пусто — добавьте файл</p></div>`;
-  } else {
-    const rows = [];
-    for(const f of it.files){
-      const url = await fileURL(f.path);
-      const isImg = (f.mime || '').startsWith('image/');
-      const thumb = isImg ? `<img class="file-thumb" src="${url}" alt="">` : `<img class="file-thumb" src="icons/${ICON.file}" alt="">`;
-      rows.push(`<div class="file-row">${thumb}<span class="file-name">${esc(f.name)}</span><span class="file-size">${fmtSize(f.size||0)}</span><button class="file-dl" data-dl="${f.path}" title="скачать">⬇</button><button class="file-open" data-open="${f.path}" title="открыть">↗</button><button class="file-del" data-fdel="${f.path}" title="удалить">×</button></div>`);
-    }
-    fileList = `<div class="file-list">${rows.join('')}</div><button class="btn add-more" id="add-file-btn">+ добавить файл</button>`;
-  }
-
-  sh.innerHTML = `<div class="sheet-head"><a class="back" href="desk.html"><img src="icons/back.png" alt="назад"></a><h2>${esc(it.name)}</h2></div>${ta}${fileList}`;
-
-  const textArea = $('#note-text');
-  if(textArea) textArea.addEventListener('input', () => {
-    const x = Store.find(id);
-    if(x){ x.text = textArea.value; saveSoon(x); }
-  });
-
-  const addBtn = $('#add-file-btn');
-  if(addBtn) addBtn.addEventListener('click', () => {
-    const inp = document.createElement('input');
-    inp.type = 'file'; 
-    inp.accept = '*/*';
-    inp.multiple = true; // Разрешаем выбор нескольких файлов
-    
-    inp.onchange = async () => {
-      const files = Array.from(inp.files);
-      if(!files.length) return;
-
-      for(const f of files) {
-        if(!guardLimits(f)) return; 
-      }
-
-      busy(addBtn, true, `⏳ грузим ${files.length} файл(ов)...`);
-      
-      let successCount = 0;
-      const x = Store.find(id); 
-      
-      for(const f of files) {
-        showProgress(f.name);
-        try {
-          const path = await uploadFile(f, id);
-          if(x) {
-            x.files = x.files || [];
-            x.files.push({ name: f.name, path, size: f.size, mime: f.type || '' });
+  nCUR = it; nnormalize(it);
+  if(sh) sh.style.display = 'none';
+  if(!$('#note-root')){
+    document.body.insertAdjacentHTML('beforeend',
+      `<div id="note-root">
+        <header class="n-top">
+          <a class="n-back" href="desk.html" title="назад">↩</a>
+          <div class="n-name" id="n-name"></div>
+          <div class="n-search"><input id="note-q" type="text" placeholder="поиск по карточкам..." autocomplete="off"></div>
+        </header>
+        <main id="note-desk"><svg id="note-links"></svg><div id="note-canvas"></div></main>
+        <div id="note-ind"></div>
+        <nav class="n-bar">
+          <button class="ntbtn" id="nd-cursor" title="двигать">➤</button>
+          <button class="ntbtn" id="nd-plus" title="добавить файл">+</button>
+          <button class="ntbtn" id="nd-pencil" title="править карточку">✎</button>
+          <button class="ntbtn" id="nd-link" title="связать карточки">🔗</button>
+        </nav>
+        <div class="modal" id="ncform" hidden><div class="modal-card">
+          <h3 id="nc-title">Карточка</h3>
+          <div id="nc-name-wrap"><input class="field" id="nc-name" placeholder="имя файла"></div>
+          <div id="nc-text-wrap"><textarea class="field" id="nc-text" placeholder="заметка..." style="min-height:120px"></textarea></div>
+          <label class="n-crow">цвет <input type="color" id="nc-color" value="#8f6bab"></label>
+          <div class="auth-row" id="nc-acts"><button class="btn btn-ghost" id="nc-dl">скачать</button><button class="btn btn-ghost" id="nc-del">удалить</button></div>
+          <div class="auth-row"><button class="btn" id="nc-ok">сохранить</button></div>
+        </div></div>
+        <div class="modal" id="nlform" hidden><div class="modal-card">
+          <h3>Линия</h3>
+          <label class="n-crow">цвет <input type="color" id="nl-color" value="#6b6275"></label>
+          <div class="auth-row"><button class="btn btn-ghost" id="nl-del">удалить</button><button class="btn" id="nl-ok">сохранить</button></div>
+        </div></div>
+      </div>`);
+    $('#n-name').textContent = it.name;
+    $('#note-q').addEventListener('input', nrender);
+    $('#nd-cursor').addEventListener('click', ()=> nsetMode(nmode==='cursor'?'':'cursor'));
+    $('#nd-pencil').addEventListener('click', ()=> nsetMode(nmode==='rename'?'':'rename'));
+    $('#nd-link').addEventListener('click', ()=> nsetMode(nmode==='link'?'':'link'));
+    $('#nd-plus').addEventListener('click', ()=>{
+      const inp = document.createElement('input'); inp.type='file'; inp.accept='*/*'; inp.multiple=true;
+      inp.onchange = async ()=>{
+        const fs = Array.from(inp.files); if(!fs.length) return;
+        for(const f of fs){ if(!guardLimits(f)) return; }
+        const addBtn = $('#nd-plus'); busy(addBtn, true, `⏳ ${fs.length}...`);
+        let ok=0;
+        for(const f of fs){
+          showProgress(f.name);
+          try{
+            const path = await uploadFile(f, id);
+            nCUR.files = nCUR.files || [];
+            nCUR.files.push({ name:f.name, path, size:f.size, mime:f.type||'', x:300+(nCUR.files.length%5)*24, y:60+(nCUR.files.length%5)*24, color:'' });
+            ok++;
+          }catch(err){
+            if(err.message==='LIMIT_EXCEEDED'){ info('Превышен лимит хранилища. Удалите старые файлы или обновите тариф.'); hideProgress(false); busy(addBtn,false); return; }
+            console.error('Ошибка загрузки:', f.name, err); info(`Не удалось загрузить ${f.name}`);
           }
-          successCount++;
-        } catch(err) {
-          // Если это наша ошибка лимита - показываем красивое сообщение
-          if (err.message === 'LIMIT_EXCEEDED') {
-            info('Не удалось загрузить файл: превышен лимит хранилища (50 МБ). Удалите старые файлы или обновите тариф.');
-            hideProgress(false);
-            busy(addBtn, false);
-            return; // Прерываем всю загрузку
-          }
-          
-          // Обычная ошибка сети
-          console.error('Ошибка загрузки:', f.name, err);
-          info(`Не удалось загрузить ${f.name}`);
         }
-      }
-
-      if(x && successCount > 0) await Store.save(x);
-
-      hideProgress(true);
-      busy(addBtn, false);
-      
-      if(successCount > 0) {
-        await notePage(); 
-      }
-    };
-    
-    inp.click();
-  });
-
-  sh.addEventListener('click', async e => {
-    const dl = e.target.closest('[data-dl]');
-    if(dl){ e.preventDefault(); const url = await fileURL(dl.dataset.dl); if(url){ const a = document.createElement('a'); a.href = url; a.download = ''; a.click(); } return; }
-    const op = e.target.closest('[data-open]');
-    if(op){ e.preventDefault(); const url = await fileURL(op.dataset.open); if(url) window.open(url, '_blank'); else info('Не удалось открыть. Попробуйте скачать.'); return; }
-    const fd = e.target.closest('[data-fdel]');
-    if(fd){
-      e.preventDefault();
-      const path = fd.dataset.fdel;
-      askConfirm('Удалить файл?', async () => {
-        const cb = $('#confirm-ok'); busy(cb, true, '⏳ удаляем...');
-        try{
-          await removePaths([path]);
-          const x = Store.find(id);
-          if(x){ x.files = (x.files||[]).filter(f => f.path !== path); await Store.save(x); }
-          await notePage();
-        } finally { busy($('#confirm-ok'), false); }
+        if(ok) await Store.save(nCUR);
+        hideProgress(true); busy(addBtn,false); if(ok) await nrender();
+      };
+      inp.click();
+    });
+    $('#nc-ok').addEventListener('click', async ()=>{
+      const kind=$('#ncform').dataset.kind, idv=$('#ncform').dataset.id, o=ncardObj(kind,idv); if(!o) return ($('#ncform').hidden=true);
+      const color=$('#nc-color').value;
+      if(o.isNote){ nCUR.text=$('#nc-text').value; o.ref.color=color; }
+      else { o.ref.name=$('#nc-name').value.trim()||o.ref.name; o.ref.color=color; }
+      await Store.save(nCUR); $('#ncform').hidden=true; await nrender();
+    });
+    $('#nc-dl').addEventListener('click', async ()=>{ const u=await fileURL($('#ncform').dataset.id); if(u){ const a=document.createElement('a'); a.href=u; a.download=''; a.click(); } });
+    $('#nc-del').addEventListener('click', ()=>{
+      const idv=$('#ncform').dataset.id;
+      askConfirm('Удалить файл?', async ()=>{
+        const cb=$('#confirm-ok'); busy(cb,true,'⏳ удаляем...');
+        try{ await removePaths([idv]); nCUR.files=(nCUR.files||[]).filter(f=>f.path!==idv); nCUR.links=(nCUR.links||[]).filter(l=>l.from!==idv&&l.to!==idv); await Store.save(nCUR); $('#ncform').hidden=true; await nrender(); }
+        finally{ busy($('#confirm-ok'),false); }
       });
-    }
-  });
+    });
+    $('#nl-ok').addEventListener('click', async ()=>{ const i=+$('#nlform').dataset.i, ln=(nCUR.links||[])[i]; if(!ln) return ($('#nlform').hidden=true); ln.color=$('#nl-color').value; await Store.save(nCUR); nrenderLinks(); $('#nlform').hidden=true; });
+    $('#nl-del').addEventListener('click', ()=>{ const i=+$('#nlform').dataset.i; askConfirm('Удалить линию?', async ()=>{ nCUR.links.splice(i,1); await Store.save(nCUR); nrenderLinks(); $('#nlform').hidden=true; }); });
+    $('#ncform').addEventListener('mousedown', e=>{ if(e.target.id==='ncform') $('#ncform').hidden=true; });
+    $('#nlform').addEventListener('mousedown', e=>{ if(e.target.id==='nlform') $('#nlform').hidden=true; });
+    $('#note-canvas').addEventListener('click', e=>{ if(performance.now()-njustDragged<350) return; const c=e.target.closest('.ncard'); if(c) ntapCard(c); });
+    $('#note-links').addEventListener('click', e=>{ const h=e.target.closest('.nhit'); if(h) nopenLink(+h.dataset.i); });
+    $('#note-desk').addEventListener('click', e=>{ if(nmode==='link' && !e.target.closest('.ncard') && !e.target.closest('.nhit')){ nlinkFrom=null; document.querySelectorAll('.nsrc').forEach(x=>x.classList.remove('nsrc')); } });
+  } else {
+    $('#n-name').textContent = it.name; $('#note-q').value='';
+  }
+  nsetMode(''); ninitCanvas(); await nrender();
 }
-
 /* ===== настройки ===== */
 function accountPage(){
   const em = $('#acc-email'); 
