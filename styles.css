@@ -627,3 +627,5 @@ textarea.field{ height:auto; min-height:120px; padding:14px 18px; resize:vertica
 #l-del-row{ justify-content:flex-start; }
 .ntbtn img{ width:22px; }
 .ntbtn.active img{ filter: brightness(0) invert(1); }
+/* главный бар = компактная обнимка, как .n-bar в папке */
+.toolbar.toolbar-list{ width:auto; max-width:92vw; justify-content:center; gap:8px; padding:8px; }
