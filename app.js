@@ -959,12 +959,15 @@ function LcanAddFolder(){
   return true;
 }
 function LrowHTML(it){
-  const d = (it.text||'').trim();
+  const fs = it.files || [];
+  const cnt = fs.length;
+  const sum = fs.reduce((s,f)=>s+(f.size||0),0);
+  const meta = cnt ? `${cnt} файл${cnt===1?'':cnt<5?'а':'ов'} · ${fmtSize(sum)}` : 'пусто';
   return `<div class="lrow" data-id="${it.id}">
     <div class="lrow-photo"><img src="icons/${ICON.folder}" alt=""></div>
     <div class="lrow-main">
       <div class="lrow-name">${esc(it.name)}</div>
-      ${d ? `<div class="lrow-desc">${esc(d.length>90?d.slice(0,90)+'…':d)}</div>` : ''}
+      <div class="lrow-desc">${esc(meta)}</div>
     </div>
   </div>`;
 }
