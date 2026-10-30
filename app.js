@@ -26,7 +26,7 @@ const Store = {
   async load(){
     const { data, error } = await SB.from('folders').select('*');
     if(error){ info('Не удалось загрузить папки: ' + error.message); this.cache = []; return; }
-    this.cache = (data || []).map(r => ({ id: r.id, name: r.name, text: r.text || '', pin: !!r.pin, files: r.files || [] }));
+   this.cache = (data || []).map(r => ({ id: r.id, name: r.name, text: r.text || '', pin: !!r.pin, files: r.files || [], note: r.note || null, links: r.links || [] }));
   },
   find(id){ return this.cache.find(x => x.id === id); },
   async save(it){
