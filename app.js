@@ -690,7 +690,7 @@ async function notePage(){
           <div class="n-name" id="n-name"></div>
           <div class="n-search"><input id="note-q" type="text" placeholder="поиск по карточкам..." autocomplete="off"></div>
         </header>
-        <main id="note-desk"><svg id="note-links"></svg><div id="note-canvas"></div></main>
+        <main id="note-desk"><div id="note-canvas"><svg id="note-links"></svg><div id="note-cards"></div></div></main>
         <div id="note-ind"></div>
        <nav class="n-bar">
   <button class="ntbtn" id="nd-cursor" title="двигать"><img src="icons/cursor.png" alt=""></button>
