@@ -625,3 +625,5 @@ body.rename-mode .lrow{ cursor:text; }
 .lrow-desc{ margin-top:6px; font:400 14px 'Inter'; color:var(--ink); opacity:.65; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 textarea.field{ height:auto; min-height:120px; padding:14px 18px; resize:vertical; font:400 16px/1.5 'Inter'; }
 #l-del-row{ justify-content:flex-start; }
+.ntbtn img{ width:22px; }
+.ntbtn.active img{ filter: brightness(0) invert(1); }
