@@ -692,12 +692,12 @@ async function notePage(){
         </header>
         <main id="note-desk"><svg id="note-links"></svg><div id="note-canvas"></div></main>
         <div id="note-ind"></div>
-        <nav class="n-bar">
-          <button class="ntbtn" id="nd-cursor" title="двигать">➤</button>
-          <button class="ntbtn" id="nd-plus" title="добавить файл">+</button>
-          <button class="ntbtn" id="nd-pencil" title="править карточку">✎</button>
-          <button class="ntbtn" id="nd-link" title="связать карточки">🔗</button>
-        </nav>
+       <nav class="n-bar">
+  <button class="ntbtn" id="nd-cursor" title="двигать"><img src="icons/cursor.png" alt=""></button>
+  <button class="ntbtn" id="nd-plus" title="добавить файл"><img src="icons/plus.png" alt=""></button>
+  <button class="ntbtn" id="nd-pencil" title="править карточку"><img src="icons/pen.png" alt=""></button>
+  <button class="ntbtn" id="nd-link" title="связать карточки"><img src="icons/clip.png" alt=""></button>
+</nav>
         <div class="modal" id="ncform" hidden><div class="modal-card">
           <h3 id="nc-title">Карточка</h3>
           <div id="nc-name-wrap"><input class="field" id="nc-name" placeholder="имя файла"></div>
