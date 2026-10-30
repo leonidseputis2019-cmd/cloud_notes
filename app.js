@@ -576,7 +576,7 @@ function nedgePt(cx,cy,w,h,tx,ty){
 function nrenderLinks(){
   const svg = $('#note-links'); if(!svg || !nCUR) return;
   const map = {};
-  document.querySelectorAll('#note-canvas .ncard').forEach(c=>{
+  document.querySelectorAll('#note-cards .ncard').forEach(c=>{
     const x=+c.dataset.x||0, y=+c.dataset.y||0;
     map[c.dataset.id] = { cx:x+c.offsetWidth/2, cy:y+c.offsetHeight/2, w:c.offsetWidth, h:c.offsetHeight };
   });
