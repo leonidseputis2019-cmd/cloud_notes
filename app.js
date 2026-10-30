@@ -548,7 +548,7 @@ function ncardHTML(kind, id, name, x, y, color, bodyHTML){
     <header${st}>${esc(name)}</header><div class="ncbody">${bodyHTML}</div></div>`;
 }
 async function nrender(){
-  const c = $('#note-canvas'); if(!c || !nCUR) return;
+  const c = $('#note-cards'); if(!c || !nCUR) return;
   const q = ($('#note-q')?.value || '').toLowerCase().trim();
   const hit = s => !q || String(s).toLowerCase().includes(q);
   const parts = [];
