@@ -991,7 +991,7 @@ function Lboot(){
   ['#desk','#tabs','#modal','#view-ind','#desk-empty'].forEach(s=>{ const e=$(s); if(e) e.style.display='none'; });
   // переиспользуем живой .toolbar: вычищаем мёртвые [data-mode], кладём свои
   const tb = document.querySelector('.toolbar');
-  if(tb){ tb.innerHTML = `<button class="tbtn" id="l-plus" title="создать папку"><img src="icons/plus.png" alt="+"></button><button class="tbtn" id="l-pencil" title="переименовать папку"><img src="icons/pen.png" alt="✎"></button>`; }
+  tb.classList.add('toolbar-list'); if(tb){ tb.innerHTML = `<button class="tbtn" id="l-plus" title="создать папку"><img src="icons/plus.png" alt="+"></button><button class="tbtn" id="l-pencil" title="переименовать папку"><img src="icons/pen.png" alt="✎"></button>`; }
   // список
   if(!$('#l-list')) document.body.insertAdjacentHTML('beforeend','<main class="l-list" id="l-list"></main>');
   // модалка папки (имя + описание + удалить), на живых классах .modal/.field/.btn
