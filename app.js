@@ -30,7 +30,7 @@ const Store = {
   },
   find(id){ return this.cache.find(x => x.id === id); },
   async save(it){
-    const { error } = await SB.from('folders').upsert({ id: it.id, owner: MY_UID, name: it.name, text: it.text || '', pin: !!it.pin, files: it.files || [] });
+   const { error } = await SB.from('folders').upsert({ id: it.id, owner: MY_UID, name: it.name, text: it.text || '', pin: !!it.pin, files: it.files || [], note: it.note || null, links: it.links || [] });
     if(error) info('Не удалось сохранить в облако: ' + error.message);
   },
   async remove(id){
